@@ -38,7 +38,11 @@ final class WPEEngineAssetsLibrary {
         guard panel.runModal() == .OK, let selectedURL = panel.url else {
             return false
         }
+        return link(selectedURL)
+    }
 
+    /// w4: also used on launch to relink the remembered folder after a new build.
+    func link(_ selectedURL: URL) -> Bool {
         guard let engineRoot = Self.validatedEngineRoot(from: selectedURL) else {
             let message = String(
                 localized: "The selected folder doesn't contain Wallpaper Engine assets. Choose the wallpaper_engine install folder or Wallpaper Engine.app.",
@@ -60,6 +64,7 @@ final class WPEEngineAssetsLibrary {
             isAuthorized = true
             engineRootDisplayName = engineRoot.lastPathComponent
             lastError = nil
+            W4FolderMemory.assetsPath = selectedURL.path(percentEncoded: false)
             return true
         } catch {
             let message = "Failed to save Wallpaper Engine assets access: \(error.localizedDescription)"

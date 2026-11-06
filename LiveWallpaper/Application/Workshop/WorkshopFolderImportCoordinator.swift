@@ -550,13 +550,16 @@ final class WorkshopFolderImportCoordinator {
                 return .imported
             case let .sceneFailure(cause, _, _):
                 Logger.warning("Failed to read a scene during import: \(cause.reason)", category: .workshop)
+                W4FolderMemory.noteSkipped(folder: projectFolder, reason: cause.reason)
                 return .unreadable
             case let .rejected(reason):
                 Logger.info("Skipped a project during import: \(reason)", category: .workshop)
+                W4FolderMemory.noteSkipped(folder: projectFolder, reason: "\(reason)")
                 return .rejected
             }
         } catch {
             Logger.info("Failed to read a project during import: \(error.localizedDescription)", category: .workshop)
+            W4FolderMemory.noteSkipped(folder: projectFolder, reason: error.localizedDescription)
             return .unreadable
         }
     }
@@ -571,7 +574,7 @@ final class WorkshopFolderImportCoordinator {
             let message = if conflictTitles.count == 1, rejected == 0, unreadable == 0 {
                 String(localized: "\(conflictTitles[0]) is already in your library from another folder.", bundle: .appLanguage, comment: "Folder import failure: the one chosen project has a Workshop id the library already holds from a different folder. Placeholder is the title of the wallpaper already in the library.")
             } else {
-                [failure, conflictNote].compactMap(\.self).joined(separator: " ")
+                [failure, conflictNote, W4FolderMemory.takeSkippedNote()].compactMap(\.self).joined(separator: " ")
             }
             toastCenter.post(
                 headline: String(localized: "Import failed", bundle: .appLanguage, comment: "Folder import failure toast headline."),
@@ -594,7 +597,7 @@ final class WorkshopFolderImportCoordinator {
         toastCenter.post(
             headline: String(localized: "Linked", bundle: .appLanguage, comment: "Folder-link success toast headline."),
             title: title,
-            message: [counts, conflictNote].compactMap(\.self).joined(separator: " "),
+            message: [counts, conflictNote, W4FolderMemory.takeSkippedNote()].compactMap(\.self).joined(separator: " "),
             isSuccess: true
         )
     }

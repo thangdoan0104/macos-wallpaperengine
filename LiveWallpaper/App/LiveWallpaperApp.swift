@@ -241,6 +241,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if !MAS_BUILD
         W4LyricController.shared.start()
         W4DesktopPictureSync.shared.start(manager: manager)
+        #if !LITE_BUILD
+        Task { @MainActor [weak self] in
+            await W4FolderMemory.relinkAfterNewBuild(
+                library: { url in await self?.workshopSetupController.bindSteamLibrary(url) },
+                assets: { url in WPEEngineAssetsLibrary.shared.link(url) }
+            )
+        }
+        #endif
         #endif
         screenManager = manager
         #if !MAS_BUILD

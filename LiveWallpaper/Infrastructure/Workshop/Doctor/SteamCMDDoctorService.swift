@@ -439,6 +439,7 @@ final class SteamCMDDoctorService {
         workdirBookmarkData = bookmark
         workdirDisplayPath = canonicalURL.path(percentEncoded: false)
         workdirResolutionFailed = false
+        W4FolderMemory.libraryPath = canonicalURL.path(percentEncoded: false)
         Logger.info("Bound official Steam library", category: .workshop)
         await runProbe(.workingDirectory)
     }
