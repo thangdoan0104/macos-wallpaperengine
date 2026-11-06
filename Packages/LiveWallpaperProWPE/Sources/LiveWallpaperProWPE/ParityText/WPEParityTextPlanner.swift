@@ -93,13 +93,19 @@ public final class WPEParityTextPlanner {
            WPEParityTextDrawParameters(object: object, pointSize: object.pointSize) == nil {
             throw WPEParityTextPreparationError.nonfiniteDrawParameters
         }
-        let layout = try layout(object, effectCount: effectCount, glyphMode: glyphMode)
-        if glyphMode == .distanceField, let mesh = layout.mesh {
+        var layout = try self.layout(object, effectCount: effectCount, glyphMode: glyphMode)
+        var packMode = glyphMode
+        // w4: one glyph from a fallback font used to stop the whole scene from drawing. Such a text now
+        // draws as plain bitmap glyphs, losing its outline or shadow, and the rest of the scene runs.
+        if glyphMode == .distanceField, let mesh = layout.mesh,
+           (mesh.mono.glyphKeys + mesh.color.glyphKeys).contains(where: { Int($0 >> 24) != 0 }) {
+            layout = try self.layout(object, effectCount: effectCount, glyphMode: .bitmap)
+            packMode = .bitmap
+        }
+        if packMode == .distanceField, let mesh = layout.mesh {
             let chain = fonts.chain(fontPath: object.font, pointSize: mesh.pointSize)
             for key in Set(mesh.mono.glyphKeys + mesh.color.glyphKeys) {
                 let index = Int(key >> 24)
-                // Product qualification currently covers one actual primary face, not mixed fallback groups.
-                guard index == 0 else { throw WPEParityTextPreparationError.unqualifiedDistanceFieldGroup }
                 guard index < chain.faces.count,
                       let glyph = chain.faces[index].layoutGlyph(key & 0xFFFFFF, mode: .distanceField),
                       !glyph.isColor || glyph.box.hasArea else {
@@ -111,7 +117,7 @@ public final class WPEParityTextPlanner {
             }
         }
         var next = prepared?.state ?? state
-        let result = try pack(object, layout: layout, glyphMode: glyphMode, state: &next)
+        let result = try pack(object, layout: layout, glyphMode: packMode, state: &next)
         return PreparedPlan(layout: result.layout, atlasKey: result.atlasKey, state: next)
     }
 
