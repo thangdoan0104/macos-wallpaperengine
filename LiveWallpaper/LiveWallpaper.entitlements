@@ -120,16 +120,12 @@
 	</array>
 	<key>com.apple.security.files.bookmarks.app-scope</key>
 	<true/>
-	<!-- w4: reads the old app's art, downloads and settings; writes only the Dock's own preferences. -->
+	<!-- w4: reads the old app's art, downloads and and settings. -->
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
 	<array>
 		<string>/LiveWall/</string>
 		<string>/Downloads/LiveWall/</string>
 		<string>/Library/Preferences/local.livewall.app.plist</string>
-	</array>
-	<key>com.apple.security.temporary-exception.shared-preference.read-write</key>
-	<array>
-		<string>com.apple.dock</string>
 	</array>
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>

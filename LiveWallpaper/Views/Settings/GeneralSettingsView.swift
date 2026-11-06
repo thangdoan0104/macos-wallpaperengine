@@ -236,7 +236,6 @@ struct GeneralSettingsView: View {
                 generalSection
                 #if !MAS_BUILD
                 W4DesktopPictureSection()
-                W4DockSection()
                 #endif
             }
         case .performancePower:
