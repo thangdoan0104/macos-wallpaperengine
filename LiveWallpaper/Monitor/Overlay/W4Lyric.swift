@@ -2,6 +2,7 @@
 import AppKit
 import Combine
 import Foundation
+import LiveWallpaperCore
 import SwiftUI
 
 // MARK: - Settings
