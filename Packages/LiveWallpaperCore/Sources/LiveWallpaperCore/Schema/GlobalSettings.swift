@@ -91,8 +91,8 @@ public struct GlobalSettings: Codable, Sendable {
         globalPauseOnBattery: Bool = false,
         preservePlaybackOnLock: Bool = false,
         startOnLogin: Bool = false,
-        pauseOnFullScreen: Bool = true,
-        pauseOnWindowOcclusion: Bool = true,
+        pauseOnFullScreen: Bool = false,
+        pauseOnWindowOcclusion: Bool = false,
         pauseOnAppWindow: Bool = false,
         pauseInLowPowerMode: Bool = true,
         showInDock: Bool = true,
@@ -148,9 +148,9 @@ public struct GlobalSettings: Codable, Sendable {
         globalPauseOnBattery = try c.decodeIfPresent(Bool.self, forKey: .globalPauseOnBattery) ?? false
         preservePlaybackOnLock = try c.decodeIfPresent(Bool.self, forKey: .preservePlaybackOnLock) ?? false
         startOnLogin = try c.decodeIfPresent(Bool.self, forKey: .startOnLogin) ?? false
-        pauseOnFullScreen = try c.decodeIfPresent(Bool.self, forKey: .pauseOnFullScreen) ?? true
+        pauseOnFullScreen = try c.decodeIfPresent(Bool.self, forKey: .pauseOnFullScreen) ?? false
         // Predates-key installs → true; explicit false still wins once encoded.
-        pauseOnWindowOcclusion = (try? c.decodeIfPresent(Bool.self, forKey: .pauseOnWindowOcclusion)) ?? true
+        pauseOnWindowOcclusion = (try? c.decodeIfPresent(Bool.self, forKey: .pauseOnWindowOcclusion)) ?? false
         pauseOnAppWindow = (try? c.decodeIfPresent(Bool.self, forKey: .pauseOnAppWindow)) ?? false
         // Absent → true. When the retired `pauseInGameMode` key is present, inherit it: switching
         // that off was opting out of this too. Read but never re-encoded.

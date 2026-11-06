@@ -237,6 +237,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // before ScreenManager restores the saved wallpapers.
         WallpaperCapturePolicy.allowsScreenCapture =
             SettingsManager.shared.loadGlobalSettings().wallpaperVisibleInScreenCapture
+        W4AlwaysRun.applyOnce()
         let manager = ScreenManager(startupOptions: startupPlan.screenManagerOptions)
         #if !MAS_BUILD
         W4LyricController.shared.start()

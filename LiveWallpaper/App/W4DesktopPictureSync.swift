@@ -77,7 +77,10 @@ final class W4DesktopPictureSync {
         for screen in manager.screens {
             let id = screen.id
             // While a wallpaper loads, the running session may still be the previous one.
-            guard manager.wallpaperLoads.attempt(for: screen) == nil,
+            // A stopped scene draws no next frame to capture; it syncs once it plays again.
+            guard (manager.suspendReasonsByScreen[id] ?? []).isEmpty,
+                  screen.playbackController?.userIntendsToPlay ?? true,
+                  manager.wallpaperLoads.attempt(for: screen) == nil,
                   let session = screen.runtimeSession,
                   let configuration = manager.getConfiguration(for: screen) else { continue }
             let key = stateKey(screen: screen, session: session as AnyObject, configuration: configuration)
