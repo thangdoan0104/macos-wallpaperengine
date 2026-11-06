@@ -203,7 +203,7 @@ actor NowPlayingLyricsFetcher {
 
     static let userAgent: String = {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-        return "Loomscreen/\(version) (https://github.com/Paradox07127/macos-wallpaperengine)"
+        return "w4llpapr/\(version) (https://github.com/thangdoan0104/macos-wallpaperengine)"
     }()
 
     private let transport: Transport

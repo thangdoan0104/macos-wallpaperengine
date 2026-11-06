@@ -13,12 +13,13 @@ public enum AppLanguagePreference: String, CaseIterable, Identifiable, Sendable 
     case french = "fr"
     case korean = "ko"
     case brazilianPortuguese = "pt-BR"
+    case vietnamese = "vi"
 
     public static let storageKey = "AppLanguage.Preference"
 
     /// Follow System first, then languages by locale identifier; Chinese variants stay adjacent.
     public static let menuCases: [AppLanguagePreference] = [
-        .system, .german, .english, .spanish, .french, .japanese, .korean,
+        .system, .vietnamese, .german, .english, .spanish, .french, .japanese, .korean,
         .brazilianPortuguese, .simplifiedChinese, .traditionalChinese,
     ]
 
@@ -29,7 +30,7 @@ public enum AppLanguagePreference: String, CaseIterable, Identifiable, Sendable 
         case .system:
             return nil
         case .english, .simplifiedChinese, .traditionalChinese, .japanese, .spanish,
-             .german, .french, .korean, .brazilianPortuguese:
+             .german, .french, .korean, .brazilianPortuguese, .vietnamese:
             return rawValue
         }
     }
@@ -100,6 +101,8 @@ public enum AppLanguagePreference: String, CaseIterable, Identifiable, Sendable 
             "한국어"
         case .brazilianPortuguese:
             "Português (Brasil)"
+        case .vietnamese:
+            "Tiếng Việt"
         }
     }
 

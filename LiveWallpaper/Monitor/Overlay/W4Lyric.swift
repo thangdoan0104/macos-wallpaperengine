@@ -509,7 +509,7 @@ struct W4FontPicker: View {
 
     private var sample: String {
         let line = controller.activeLineText
-        return line.isEmpty ? "Lyric của m sẽ hiện như thế này" : line
+        return line.isEmpty ? "Lyric sẽ hiện như thế này" : line
     }
 
     private func pick(_ family: String) {

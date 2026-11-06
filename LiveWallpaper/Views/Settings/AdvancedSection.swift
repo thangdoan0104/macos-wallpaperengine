@@ -27,16 +27,6 @@ extension GeneralSettingsView {
             }
 
             SettingRow(
-                icon: "ladybug",
-                iconColor: DesignTokens.Colors.Status.danger,
-                title: "Report a Bug"
-            ) {
-                Button("Open") { presentBugReport() }
-                    .fixedSize()
-                    .accessibilityLabel(Text("Report a bug"))
-            }
-
-            SettingRow(
                 icon: "doc.text.magnifyingglass",
                 iconColor: .orange,
                 title: "Log Files"

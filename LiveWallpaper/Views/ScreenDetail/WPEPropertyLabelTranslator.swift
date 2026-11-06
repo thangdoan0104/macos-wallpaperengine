@@ -99,13 +99,16 @@ final class WPEPropertyLabelTranslator {
 
     /// The label a row should render.
     func displayText(for original: String) -> String {
-        isEnabled ? translated[original] ?? original : original
+        if isEnabled, let glossary = W4SceneGlossary.vietnamese(for: original, target: targetLanguage) {
+            return glossary
+        }
+        return isEnabled ? translated[original] ?? original : original
     }
 
     /// The author label to reveal on hover once a translation replaced it;
     /// `nil` while the row still shows the original.
     func helpText(for original: String) -> String? {
-        isEnabled && translated[original] != nil ? original : nil
+        isEnabled && (translated[original] != nil || W4SceneGlossary.vietnamese(for: original, target: targetLanguage) != nil) ? original : nil
     }
 
     /// A description with its translated lines swapped in; every other line stays as authored.
@@ -530,5 +533,25 @@ extension View {
         #else
         self
         #endif
+    }
+}
+
+/// w4: common scene setting names, so they read in Vietnamese even before a language pack is installed.
+enum W4SceneGlossary {
+    private static let terms: [String: String] = [
+        "鼠标视差": "Lệch hình theo chuột", "視差": "Lệch hình", "视差": "Lệch hình", "鼠标交互": "Tương tác chuột", "鼠标跟随": "Theo con trỏ",
+        "拍摄框": "Khung máy ảnh", "相框": "Khung ảnh", "边框": "Viền", "阳光折射": "Khúc xạ ánh nắng", "光线": "Tia sáng", "光效": "Hiệu ứng sáng", "光晕": "Quầng sáng", "光斑": "Đốm sáng", "阳光": "Ánh nắng", "太阳": "Mặt trời", "月亮": "Mặt trăng", "星星": "Ngôi sao", "星空": "Bầu trời sao",
+        "樱花": "Hoa anh đào", "櫻花": "Hoa anh đào", "花瓣": "Cánh hoa", "落叶": "Lá rơi", "雪花": "Bông tuyết", "下雪": "Tuyết rơi", "雪": "Tuyết", "下雨": "Mưa rơi", "雨": "Mưa", "雨滴": "Giọt mưa", "云": "Mây", "雾": "Sương mù", "烟雾": "Khói", "粒子": "Hạt", "萤火虫": "Đom đóm", "火焰": "Lửa", "闪电": "Tia sét", "水波": "Gợn nước", "波纹": "Gợn sóng", "气泡": "Bong bóng",
+        "时间": "Đồng hồ", "时钟": "Đồng hồ", "时钟显示": "Hiện đồng hồ", "日期": "Ngày tháng", "星期": "Thứ", "秒": "Giây", "分钟": "Phút", "小时": "Giờ", "12小时制": "Giờ 12 tiếng", "24小时制": "Giờ 24 tiếng", "显示时间": "Hiện giờ", "显示日期": "Hiện ngày",
+        "音频响应": "Phản ứng theo nhạc", "音频": "Âm thanh", "音乐": "Nhạc", "音量": "Âm lượng", "音效": "Hiệu ứng âm thanh", "音频可视化": "Sóng nhạc", "频谱": "Phổ nhạc", "律动": "Nhịp điệu", "声音": "Âm thanh", "静音": "Tắt tiếng", "歌词": "Lyric", "播放器": "Trình phát",
+        "颜色": "Màu", "主题色": "Màu chủ đề", "背景": "Nền", "背景颜色": "Màu nền", "亮度": "Độ sáng", "对比度": "Tương phản", "饱和度": "Độ đậm màu", "透明度": "Độ trong suốt", "不透明度": "Độ đậm", "模糊": "Làm mờ", "动态模糊": "Mờ chuyển động", "滤镜": "Bộ lọc", "暗角": "Tối viền", "色调": "Tông màu",
+        "大小": "Cỡ", "尺寸": "Kích thước", "缩放": "Thu phóng", "速度": "Tốc độ", "位置": "Vị trí", "角度": "Góc", "旋转": "Xoay", "偏移": "Độ lệch", "强度": "Cường độ", "数量": "Số lượng", "密度": "Mật độ", "左右": "Trái, phải", "上下": "Trên, dưới",
+        "人物": "Nhân vật", "角色": "Nhân vật", "眨眼": "Nháy mắt", "呼吸": "Nhịp thở", "动画": "Chuyển động", "特效": "Hiệu ứng", "效果": "Hiệu ứng", "开关": "Bật tắt", "显示": "Hiển thị", "隐藏": "Ẩn", "文字": "Chữ", "字体": "Phông chữ", "标题": "Tiêu đề", "天气": "Thời tiết", "温度": "Nhiệt độ", "壁纸": "Hình nền", "摄像机": "Máy quay", "镜头": "Ống kính", "景深": "Độ sâu trường ảnh",
+    ]
+
+    static func vietnamese(for label: String, target: Locale.Language) -> String? {
+        guard target.languageCode?.identifier == "vi" else { return nil }
+        let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        return terms[trimmed] ?? terms[trimmed.applyingTransform(StringTransform("Traditional-Simplified"), reverse: false) ?? trimmed]
     }
 }

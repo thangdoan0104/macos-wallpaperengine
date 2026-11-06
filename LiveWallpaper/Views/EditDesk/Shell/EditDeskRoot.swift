@@ -231,7 +231,7 @@ struct EditDeskRoot: View {
         }
         #endif
         if progress.handled.isEmpty, !progress.hasPresentedTour {
-            router.onboardingRequested = true
+            router.onboardingRequested = false
         }
         Self.consumeOnboardingRequest(router: router, progress: progress, pageGuide: pageGuide)
         #if !LITE_BUILD

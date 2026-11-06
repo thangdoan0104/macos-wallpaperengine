@@ -52,9 +52,6 @@ struct TopBar<Trailing: View>: View {
 
     private var trailingContent: some View {
         HStack(spacing: DesignTokens.EditDesk.Spacing.s12) {
-            if budget.showsCapsule {
-                OnboardingCapsule()
-            }
             PageGuideButton(context: .page(page))
             trailing()
                 .onGeometryChange(for: CGFloat.self, of: \.size.width) { pageControlsWidth = $0 }

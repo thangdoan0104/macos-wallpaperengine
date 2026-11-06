@@ -208,12 +208,7 @@ struct WallpaperFailureDetails: View {
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            SheetFooterBar(primaryTitle: "Done", primaryAction: onDismiss, leading: {
-                Button {
-                    report = BugReporter.makeReport(activeWallpapers: [], failureContext: failure)
-                } label: { Label("Report this Problem", systemImage: "ladybug") }
-                    .buttonStyle(.borderless)
-            })
+            SheetFooterBar(primaryTitle: "Done", primaryAction: onDismiss, leading: { EmptyView() })
         }
         .padding(DesignTokens.Spacing.xl)
         .frame(width: 560, height: 480)

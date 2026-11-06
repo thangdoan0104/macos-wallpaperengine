@@ -29,10 +29,6 @@ struct AttemptSceneProperties: View {
                         .font(DesignTokens.Typography.bodyEmphasized)
                     Text(verbatim: failure.reason).font(DesignTokens.Typography.body).textSelection(.enabled)
                     Button("Reload Settings") { reload += 1 }.buttonStyle(.bordered)
-                    Button {
-                        report = BugReporter.makeReport(activeWallpapers: [], failureContext: settingsFailure(cause: failure))
-                    } label: { Label("Report this Problem", systemImage: "ladybug") }
-                        .buttonStyle(.borderless)
                 } else if resolved {
                     IllustratedEmptyState(symbol: "slider.horizontal.3", title: "No scene options", variant: .compact)
                 } else {

@@ -78,30 +78,6 @@ extension GeneralSettingsView {
             }
 
             #if !MAS_BUILD
-            SettingRow(
-                icon: "arrow.triangle.2.circlepath",
-                iconColor: .purple,
-                title: "Check for updates automatically",
-                info: "Checks at launch and periodically while the app is running."
-            ) {
-                Toggle("", isOn: $checksUpdatesAtLaunch)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .onChange(of: checksUpdatesAtLaunch) { _, enabled in
-                        SparkleUpdaterController.shared.automaticallyChecksForUpdates = enabled
-                    }
-                    .accessibilityLabel(Text("Check for updates automatically"))
-                    .accessibilityHint(Text("Checks at launch and periodically while the app is running."))
-            }
-
-            SettingRow(
-                icon: "flask",
-                iconColor: .orange,
-                title: "Update channel",
-                info: "Beta builds arrive before stable releases and may be less reliable."
-            ) {
-                updateChannelPicker
-            }
             #endif
 
             SettingRow(

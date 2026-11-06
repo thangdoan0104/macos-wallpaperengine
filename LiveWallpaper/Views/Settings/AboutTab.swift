@@ -58,16 +58,7 @@ extension GeneralSettingsView {
                 }
 
                 #if !MAS_BUILD
-                UpdateStatusLine()
-                    .padding(.top, 2)
 
-                HStack(spacing: 6) {
-                    Text("Update channel")
-                        .font(DesignTokens.Typography.caption)
-                        .foregroundStyle(.secondary)
-                    updateChannelPicker
-                        .controlSize(.small)
-                }
                 #endif
             }
         }
@@ -113,45 +104,23 @@ extension GeneralSettingsView {
                 title: "View on GitHub",
                 systemImage: "chevron.left.forwardslash.chevron.right",
                 accent: .blue,
-                url: URL(string: "https://github.com/Paradox07127/macos-wallpaperengine")
-            ),
-            AboutAction(
-                id: "discussions",
-                title: "Discussions",
-                systemImage: "bubble.left.and.bubble.right",
-                accent: .indigo,
-                url: URL(string: "https://github.com/Paradox07127/macos-wallpaperengine/discussions")
+                url: URL(string: "https://github.com/thangdoan0104/macos-wallpaperengine")
             ),
         ]
         #endif
     }
 
     private var aboutActions: [AboutAction] {
-        aboutLinks + [
-            AboutAction(
-                id: "bug",
-                title: "Report a Bug",
-                systemImage: "ladybug",
-                accent: .red,
-                action: presentBugReport
-            ),
-            AboutAction(
-                id: "tour",
-                title: "Welcome Tour",
-                systemImage: "sparkles",
-                accent: .purple,
-                action: { NotificationCenter.default.post(name: .showOnboarding, object: nil) }
-            ),
-        ]
+        aboutLinks
     }
 
     private var aboutFooter: some View {
         VStack(spacing: 4) {
-            Text("Made by Paradox07127")
+            Text(verbatim: "w4llpapr dựa trên Loomscreen của Paradox07127")
                 .font(DesignTokens.Typography.caption)
                 .foregroundStyle(.secondary)
 
-            Text(verbatim: "© 2026 w4llpapr contributors · MIT License")
+            Text(verbatim: "© 2026 Loomscreen contributors · MIT License")
                 .font(DesignTokens.Typography.caption)
                 .foregroundStyle(.tertiary)
         }

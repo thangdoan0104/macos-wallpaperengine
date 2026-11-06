@@ -90,7 +90,6 @@ struct MenuBarContent: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 #if !MAS_BUILD
-                updateButton
                 #endif
 
                 Toggle("", isOn: Binding(
