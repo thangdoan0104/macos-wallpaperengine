@@ -13,6 +13,7 @@ public enum GlobalShortcutAction: String, CaseIterable, Codable, Identifiable, S
     case toggleWallpapers
     case reloadWallpapers
     case openSettings
+    case toggleFullScreenInteraction
 
     public var id: String { rawValue }
 
@@ -40,6 +41,8 @@ public enum GlobalShortcutAction: String, CaseIterable, Codable, Identifiable, S
             "Reload All Wallpapers"
         case .openSettings:
             "Open Settings Window"
+        case .toggleFullScreenInteraction:
+            "Tương tác toàn màn"
         }
     }
 
@@ -61,6 +64,8 @@ public enum GlobalShortcutAction: String, CaseIterable, Codable, Identifiable, S
             String(localized: "Reload All Wallpapers", bundle: .appLanguage)
         case .openSettings:
             String(localized: "Open Settings Window", bundle: .appLanguage)
+        case .toggleFullScreenInteraction:
+            "Tương tác toàn màn"
         }
     }
 
@@ -89,6 +94,8 @@ public enum GlobalShortcutAction: String, CaseIterable, Codable, Identifiable, S
             "Force every display to re-render its wallpaper."
         case .openSettings:
             "Bring the settings window to the front."
+        case .toggleFullScreenInteraction:
+            "Mọi cú bấm trên Desktop đi vào scene. Khi bật sẽ không bấm được icon Desktop."
         }
     }
 
@@ -110,6 +117,8 @@ public enum GlobalShortcutAction: String, CaseIterable, Codable, Identifiable, S
             GlobalShortcutBinding(keyCode: 15, modifiers: [.control, .shift])
         case .openSettings:
             GlobalShortcutBinding(keyCode: 43, modifiers: [.control, .shift])
+        case .toggleFullScreenInteraction:
+            GlobalShortcutBinding(keyCode: 40, modifiers: [.control, .shift])
         }
     }
 }

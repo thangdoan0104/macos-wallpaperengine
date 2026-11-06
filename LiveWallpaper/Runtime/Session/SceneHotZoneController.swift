@@ -1,6 +1,28 @@
 #if !LITE_BUILD
 import AppKit
+import Combine
 import LiveWallpaperCore
+
+/// w4: makes every scene take all desktop clicks. Starts off on each launch, so desktop icons always work after a restart.
+@MainActor
+final class W4FullInteraction: ObservableObject {
+    static let shared = W4FullInteraction()
+
+    private let sessions = NSHashTable<SceneWallpaperSession>.weakObjects()
+
+    @Published var enabled = false {
+        didSet {
+            guard enabled != oldValue else { return }
+            for session in sessions.allObjects {
+                session.w4FullInteractionChanged()
+            }
+        }
+    }
+
+    func register(_ session: SceneWallpaperSession) {
+        sessions.add(session)
+    }
+}
 
 struct SceneHotZoneEvent: Equatable {
     enum Kind { case down, dragged, up, rightDown, rightUp, moved, entered, exited }

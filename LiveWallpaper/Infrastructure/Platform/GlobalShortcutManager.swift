@@ -224,6 +224,11 @@ final class GlobalShortcutManager {
             manager.reloadAllScreens()
         case .openSettings:
             onOpenSettings()
+        case .toggleFullScreenInteraction:
+            #if !LITE_BUILD
+            W4FullInteraction.shared.enabled.toggle()
+            #endif
+            break
         }
     }
 

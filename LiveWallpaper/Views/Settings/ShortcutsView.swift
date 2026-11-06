@@ -297,6 +297,7 @@ private extension GlobalShortcutAction {
         case .toggleWallpapers: "macwindow"
         case .reloadWallpapers: "arrow.clockwise"
         case .openSettings: "gearshape"
+        case .toggleFullScreenInteraction: "hand.tap"
         }
     }
 
@@ -309,6 +310,7 @@ private extension GlobalShortcutAction {
         case .toggleWallpapers: DesignTokens.Colors.SettingsIcon.wallpaperVisibility
         case .reloadWallpapers: DesignTokens.Colors.SettingsIcon.reload
         case .openSettings: DesignTokens.Colors.SettingsIcon.openSettings
+        case .toggleFullScreenInteraction: DesignTokens.Colors.SettingsIcon.mouseInteraction
         }
     }
 }

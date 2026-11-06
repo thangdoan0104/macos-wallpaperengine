@@ -17,6 +17,9 @@ struct PlaybackControls: View {
     @Environment(\.featureCatalog) private var featureCatalog
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.appearsActive) private var appearsActive
+    #if !LITE_BUILD
+    @ObservedObject private var w4Full = W4FullInteraction.shared
+    #endif
 
     @Binding var muted: Bool
     @Binding var videoVolume: Double
@@ -133,7 +136,7 @@ struct PlaybackControls: View {
     // MARK: - Row layout
 
     private enum PlaybackRow: Hashable {
-        case speed, frameRate, mouseInteraction, clickInteraction, syncToLockScreen
+        case speed, frameRate, mouseInteraction, clickInteraction, w4FullInteraction, syncToLockScreen
         case webJavaScript, webInteraction
     }
 
@@ -145,6 +148,9 @@ struct PlaybackControls: View {
         rows.append(.frameRate)
         if showsMouseInteractionRow {
             rows.append(contentsOf: [.mouseInteraction, .clickInteraction])
+            #if !LITE_BUILD
+            rows.append(.w4FullInteraction)
+            #endif
         }
         if showsSyncToLockScreenRow {
             rows.append(.syncToLockScreen)
@@ -231,6 +237,17 @@ struct PlaybackControls: View {
                 label: Text("Interaction"),
                 help: Text("Scene buttons receive clicks and the rest of this display’s desktop works as usual. When off, the scene receives no clicks.")
             )
+        case .w4FullInteraction:
+            #if !LITE_BUILD
+            glyphToggle(
+                on: "hand.tap",
+                title: "Toàn màn",
+                isOn: w4Full.enabled,
+                binding: $w4Full.enabled,
+                label: Text("Tương tác toàn màn"),
+                help: Text("Mọi cú bấm trên Desktop đi vào scene, kể cả chỗ không có nút. Khi bật sẽ không bấm được icon Desktop. Phím tắt: Control Shift K.")
+            )
+            #endif
         case .syncToLockScreen:
             lockScreenControl
         case .webJavaScript:

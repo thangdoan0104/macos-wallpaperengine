@@ -546,7 +546,14 @@ final class SceneWallpaperSession: WallpaperRuntimeSession, WallpaperPlaybackCon
     /// The wallpaper window stays click-through; presses reach the scene through hot-zone panels and desktop clicks.
     func setClickCaptureEnabled(_ enabled: Bool) {
         clickCaptureEnabled = enabled
-        renderActor.submitConfig(.clickCaptureEnabled(enabled))
+        W4FullInteraction.shared.register(self)
+        renderActor.submitConfig(.clickCaptureEnabled(enabled || W4FullInteraction.shared.enabled))
+        refreshHotZones()
+    }
+
+    /// w4: the whole display becomes one click area while full-screen interaction is on.
+    func w4FullInteractionChanged() {
+        renderActor.submitConfig(.clickCaptureEnabled(clickCaptureEnabled || W4FullInteraction.shared.enabled))
         refreshHotZones()
     }
 
@@ -568,14 +575,15 @@ final class SceneWallpaperSession: WallpaperRuntimeSession, WallpaperPlaybackCon
     }
 
     private var hotZonesActive: Bool {
-        clickCaptureEnabled && isPlaying && !hotZoneInputSuspended
+        (clickCaptureEnabled || W4FullInteraction.shared.enabled) && isPlaying && !hotZoneInputSuspended
     }
 
     private func refreshHotZones() {
         guard hasRenderer, hotZonesActive || hotZoneController != nil else { return }
         let controller = hotZoneController ?? makeHotZoneController()
         controller.isEnabled = hotZonesActive
-        controller.update(zones: Self.hotZoneScreenRects(surface.mailbox.interactiveZones, viewFrame: hotZoneViewFrame,
+        let zones = W4FullInteraction.shared.enabled ? [CGRect(x: 0, y: 0, width: 1, height: 1)] : surface.mailbox.interactiveZones
+        controller.update(zones: Self.hotZoneScreenRects(zones, viewFrame: hotZoneViewFrame,
                                                          mirrorFrames: hotZoneMirrorFrames, clips: hotZoneClipFrames))
     }
 
