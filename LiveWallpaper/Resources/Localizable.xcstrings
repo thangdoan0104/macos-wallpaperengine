@@ -1,7 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {},
+    "" : {
+      "localizations" : {}
+    },
     "· %lld-core GPU" : {
       "comment" : "GPU identity: core count.",
       "extractionState" : "manual",
@@ -179,6 +181,12 @@
             "state" : "translated",
             "value" : "「%1$@」會被 %2$@ 目前顯示的內容覆蓋。以該名稱儲存的設定無法復原。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%1$@' sẽ bị ghi đè bằng thiết lập đang hiện trên %2$@. Thiết lập đã lưu dưới tên đó không khôi phục được."
+          }
         }
       }
     },
@@ -238,6 +246,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%1$@」會取代 %2$@ 的桌布、疊加層配置與全部設定。想留住現在這套，先把它儲存為方案。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%1$@' sẽ thay hình nền, bố cục lớp phủ và mọi cài đặt trên %2$@. Hãy lưu thiết lập hiện tại của màn đó thành bộ màn hình nếu muốn giữ lại."
           }
         }
       }
@@ -651,6 +665,12 @@
             "state" : "translated",
             "value" : "%1$@ · %2$@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
+          }
         }
       }
     },
@@ -709,6 +729,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@（%2$lld）"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ (%2$lld)"
           }
         }
       }
@@ -823,6 +849,12 @@
           }
         },
         "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        },
+        "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ %2$@"
@@ -2282,6 +2314,12 @@
             "state" : "translated",
             "value" : "%1$@，%2$@，%3$@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$@"
+          }
         }
       }
     },
@@ -2340,6 +2378,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@，%2$lld × %3$lld 像素"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld × %3$lld điểm ảnh"
           }
         }
       }
@@ -2961,6 +3005,12 @@
             "state" : "translated",
             "value" : "%1$@：%2$@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
         }
       }
     },
@@ -3393,6 +3443,18 @@
             "state" : "translated",
             "value" : "%lld 個代理"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld agent"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -3529,6 +3591,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已修改 %lld 項"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld đã đổi"
+                }
+              }
+            }
           }
         }
       }
@@ -3864,6 +3938,18 @@
             "state" : "translated",
             "value" : "%lld 台顯示器已設定桌布"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã cài %lld màn hình"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -4065,6 +4151,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 次收藏"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lượt thích"
+                }
+              }
+            }
           }
         }
       }
@@ -4456,6 +4554,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "另有 %lld 個預設集僅在 Steam 上"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Còn %lld preset chỉ có trên Steam"
+                }
+              }
+            }
           }
         }
       }
@@ -4993,6 +5103,18 @@
             "state" : "translated",
             "value" : "其中 %lld 個使用此版本無法執行的場景桌布。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld trong số đó dùng scene mà bản này không chạy được."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -5131,6 +5253,18 @@
             "state" : "translated",
             "value" : "將從 macOS 讀取的資料夾中刪除 %lld 個舊版副本（%@）。Loomscreen 裡的原始檔案不受影響。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld bản sao cũ và %@ sẽ bị xóa khỏi thư mục macOS đọc. Bản gốc trong w4llpapr vẫn còn."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -5267,6 +5401,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 個舊版副本不會被自動跟隨"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld bản sao cũ không được tự theo"
+                }
+              }
+            }
           }
         }
       }
@@ -5601,6 +5747,18 @@
             "state" : "translated",
             "value" : "%lld 個評價"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld đánh giá"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -5737,6 +5895,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 個方案"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld bộ màn hình"
+                }
+              }
+            }
           }
         }
       }
@@ -5940,6 +6110,18 @@
             "state" : "translated",
             "value" : "已選 %lld 項"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã chọn %lld"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6077,6 +6259,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "略過 %lld 個（已從其他資料夾加入桌布庫）"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bỏ qua %lld: đã có trong thư viện từ thư mục khác"
+                }
+              }
+            }
           }
         }
       }
@@ -6216,6 +6410,18 @@
             "state" : "translated",
             "value" : "略過 %lld 個：已從其他資料夾加入桌布庫。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bỏ qua %lld: đã có trong thư viện từ thư mục khác."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6352,6 +6558,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 訂閱"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld người theo dõi"
+                }
+              }
+            }
           }
         }
       }
@@ -6491,6 +6709,18 @@
             "state" : "translated",
             "value" : "測試執行在容器中殘留了 %lld 個暫存項目。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld mục tạm do lần chạy thử để lại."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6626,6 +6856,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 個時段"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld khung giờ"
+                }
+              }
+            }
           }
         }
       }
@@ -6764,6 +7006,18 @@
             "state" : "translated",
             "value" : "%lld 次瀏覽"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lượt xem"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6900,6 +7154,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 個桌布"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld hình nền"
+                }
+              }
+            }
           }
         }
       }
@@ -7039,6 +7305,18 @@
             "state" : "translated",
             "value" : "將從 macOS 讀取的資料夾中刪除 %lld 張桌布（%@）。Loomscreen 裡的原始檔案不受影響。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld hình nền"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -7176,6 +7454,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可讀取 %lld 個工作坊項目。"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đọc được %lld item Workshop."
+                }
+              }
+            }
           }
         }
       }
@@ -7380,6 +7670,18 @@
             "state" : "translated",
             "value" : "• %lld 個喜歡的桌布"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "• %lld hình nền đã thích"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -7516,6 +7818,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "• %lld 個已儲存的書籤"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "• %lld dấu trang đã lưu"
+                }
+              }
+            }
           }
         }
       }
@@ -7654,6 +7968,18 @@
             "state" : "translated",
             "value" : "• %lld 個已儲存方案"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "• %lld bộ màn hình đã lưu"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -7790,6 +8116,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "• 每台顯示器的完整設定，包括桌布、播放列表和排程（檔案中含 %lld 台顯示器）"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "• Every display's complete setup, including its wallpaper, playlist, and schedule (%lld display in the file)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "• Every display's complete setup, including its wallpaper, playlist, and schedule (%lld displays in the file)"
+                }
+              }
+            }
           }
         }
       }
@@ -11259,6 +11603,18 @@
             "state" : "translated",
             "value" : "對 %lld 個 App 啟用"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Áp dụng cho %lld app"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -12847,6 +13203,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已加入桌布庫：%1$lld 項；無法加入：%2$lld 項。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã thêm vào thư viện: %1$lld. Không thêm được: %2$lld."
           }
         }
       }
@@ -17833,6 +18195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請在登入項目中核准 Loomscreen"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duyệt w4llpapr trong mục đăng nhập"
           }
         }
       }
@@ -41815,6 +42183,18 @@
             "state" : "translated",
             "value" : "刪除 %lld 個項目"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Xóa %lld mục"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -42331,6 +42711,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除容器 tmp 中測試執行留下的 %lld 個暫存項目 · %@。沒有其他元件會讀取它們。"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Deletes %lld scratch item · %@ created by test runs in the container's tmp folder. Nothing else reads it."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Deletes %lld scratch items · %@ created by test runs in the container's tmp folder. Nothing else reads them."
+                }
+              }
+            }
           }
         }
       }
@@ -46851,6 +47249,12 @@
             "state" : "translated",
             "value" : "已下載，但無法在這台 Mac 上執行（%1$@），未套用到 %2$@。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã tải nhưng không chạy được trên máy này (%1$@). Chưa áp dụng cho %2$@."
+          }
         }
       }
     },
@@ -51310,6 +51714,12 @@
             "state" : "translated",
             "value" : "無法存取「%@」"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không truy cập được \"%@\""
+          }
         }
       }
     },
@@ -51369,6 +51779,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "嘗試重新選擇檔案"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy thử chọn lại tệp"
           }
         }
       }
@@ -51430,6 +51846,12 @@
             "state" : "translated",
             "value" : "Wallpaper Engine 匯入失敗：%@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập Wallpaper Engine thất bại: %@"
+          }
         }
       }
     },
@@ -51489,6 +51911,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新選取工作坊資料夾後再試一次"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn lại thư mục Workshop rồi thử lại"
           }
         }
       }
@@ -51550,6 +51978,12 @@
             "state" : "translated",
             "value" : "無效的 Wallpaper Engine 套件：%@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gói Wallpaper Engine không hợp lệ: %@"
+          }
         }
       }
     },
@@ -51610,6 +52044,12 @@
             "state" : "translated",
             "value" : "嘗試從 Steam 工作坊重新下載"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy thử tải lại từ Steam Workshop"
+          }
         }
       }
     },
@@ -51668,6 +52108,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WPE Metal 命令緩衝區失敗。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lệnh dựng hình Metal thất bại."
           }
         }
       }
@@ -51728,6 +52174,12 @@
             "state" : "translated",
             "value" : "Metal 命令佇列無法使用。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có hàng đợi lệnh Metal."
+          }
         }
       }
     },
@@ -51786,6 +52238,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WPE Metal 內建著色器程式庫無法使用。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có thư viện shader có sẵn."
           }
         }
       }
@@ -51846,6 +52304,12 @@
             "state" : "translated",
             "value" : "WPE Metal 管線沒有可渲染的通道。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scene không có lớp nào dựng được."
+          }
         }
       }
     },
@@ -51905,6 +52369,12 @@
             "state" : "translated",
             "value" : "為「%1$@」建構 Metal 管線失敗：%2$@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tạo được pipeline Metal cho '%1$@': %2$@"
+          }
         }
       }
     },
@@ -51963,6 +52433,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WPE Metal 管線無法用於 %@。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có pipeline Metal cho %@."
           }
         }
       }
@@ -52024,6 +52500,12 @@
             "state" : "translated",
             "value" : "scene.json 不是有效的 UTF-8。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "scene.json không phải UTF-8 hợp lệ."
+          }
         }
       }
     },
@@ -52083,6 +52565,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "scene.json 欄位 %@ 格式錯誤。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trường %@ trong scene.json bị lỗi."
           }
         }
       }
@@ -52144,6 +52632,12 @@
             "state" : "translated",
             "value" : "scene.json 缺少必要的 camera 區塊。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "scene.json thiếu phần camera bắt buộc."
+          }
         }
       }
     },
@@ -52203,6 +52697,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "scene.json 缺少必要的 general 區塊。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "scene.json thiếu phần general bắt buộc."
           }
         }
       }
@@ -52264,6 +52764,12 @@
             "state" : "translated",
             "value" : "scene.json 根層級必須是 JSON 物件。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gốc của scene.json phải là đối tượng JSON."
+          }
         }
       }
     },
@@ -52323,6 +52829,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "圖層「%1$@」需要外部套件中的檔案，暫不支援：%2$@。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lớp '%1$@' cần tệp từ gói khác, chưa hỗ trợ: %2$@."
           }
         }
       }
@@ -52384,6 +52896,12 @@
             "state" : "translated",
             "value" : "圖層「%1$@」所需的檔案遺失：%2$@。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiếu tệp cần cho lớp '%1$@': %2$@."
+          }
         }
       }
     },
@@ -52443,6 +52961,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%1$@」需要的渲染特性暫不支援：%2$@。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa hỗ trợ tính năng dựng hình mà '%1$@' cần: %2$@."
           }
         }
       }
@@ -52504,6 +53028,12 @@
             "state" : "translated",
             "value" : "圖層「%1$@」發生問題：%2$@。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lớp '%1$@' gặp lỗi: %2$@."
+          }
         }
       }
     },
@@ -52563,6 +53093,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法載入「%1$@」的影像：%2$@。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được ảnh của '%1$@': %2$@."
           }
         }
       }
@@ -52624,6 +53160,12 @@
             "state" : "translated",
             "value" : "場景快取目錄遺失。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiếu thư mục bộ nhớ đệm của scene."
+          }
         }
       }
     },
@@ -52683,6 +53225,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解析 scene.json 失敗：%@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đọc được scene.json: %@"
           }
         }
       }
@@ -52744,6 +53292,12 @@
             "state" : "translated",
             "value" : ".tex mipmap %1$lld 解碼失敗：%2$@"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lỗi giải mã mipmap %1$lld của .tex: %2$@"
+          }
         }
       }
     },
@@ -52803,6 +53357,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : ".tex mipmap %lld 解壓縮失敗。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lỗi giải nén mipmap %lld của .tex."
           }
         }
       }
@@ -52864,6 +53424,12 @@
             "state" : "translated",
             "value" : ".tex 宣告了無效尺寸 %1$lld×%2$lld。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".tex khai báo kích thước không hợp lệ %1$lld×%2$lld."
+          }
         }
       }
     },
@@ -52923,6 +53489,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這台 Mac 不支援 Metal，無法解碼 %@。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không giải mã được %@ vì máy không hỗ trợ Metal."
           }
         }
       }
@@ -52984,6 +53556,12 @@
             "state" : "translated",
             "value" : ".tex mipmap 索引 %lld 超出範圍。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mipmap %lld của .tex vượt phạm vi."
+          }
         }
       }
     },
@@ -53043,6 +53621,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : ".tex 檔案缺少 TEXB 點陣圖區塊。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp .tex thiếu khối ảnh TEXB."
           }
         }
       }
@@ -53104,6 +53688,12 @@
             "state" : "translated",
             "value" : ".tex 檔案缺少 TEXI 資訊區塊。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp .tex thiếu khối thông tin TEXI."
+          }
         }
       }
     },
@@ -53163,6 +53753,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : ".tex 區塊「%1$@」在偏移量 %2$lld 處被截斷。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khối '%1$@' của .tex bị cụt ở vị trí %2$lld."
           }
         }
       }
@@ -53224,6 +53820,12 @@
             "state" : "translated",
             "value" : "不支援 .tex 動畫/序列影格。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa hỗ trợ .tex có khung hình động."
+          }
         }
       }
     },
@@ -53283,6 +53885,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法辨識 .tex 區塊「%@」。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không nhận ra khối '%@' của .tex."
           }
         }
       }
@@ -53344,6 +53952,12 @@
             "state" : "translated",
             "value" : "無法辨識 .tex 容器「%@」。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không nhận ra định dạng chứa '%@' của .tex."
+          }
         }
       }
     },
@@ -53403,6 +54017,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚不支援 .tex 體積紋理（深度 %lld）。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa hỗ trợ .tex dạng khối (độ sâu %lld)."
           }
         }
       }
@@ -53464,6 +54084,12 @@
             "state" : "translated",
             "value" : "尚不支援 .tex 格式代碼 %lld。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa hỗ trợ định dạng .tex mã %lld."
+          }
         }
       }
     },
@@ -53522,6 +54148,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WPE Metal 紋理承載資料格式錯誤：%@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu texture bị lỗi: %@"
           }
         }
       }
@@ -53582,6 +54214,12 @@
             "state" : "translated",
             "value" : "Metal 紋理配置失敗。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không cấp phát được texture Metal."
+          }
         }
       }
     },
@@ -53641,6 +54279,12 @@
             "state" : "translated",
             "value" : "此 Metal 裝置無法取樣 %@ 紋理。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiết bị Metal này không đọc được texture %@."
+          }
         }
       }
     },
@@ -53699,6 +54343,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不支援 WPE Metal 紋理格式：%@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không hỗ trợ định dạng texture: %@"
           }
         }
       }
@@ -58275,6 +58925,18 @@
             "state" : "translated",
             "value" : "正在 %lld 台顯示器上跟隨 Loomscreen"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đang theo w4llpapr trên %lld màn"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -58333,6 +58995,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "為了安全起見，Loomscreen 不會執行可執行的工作坊專案。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để an toàn, w4llpapr không chạy các dự án Workshop dạng chương trình."
           }
         }
       }
@@ -70075,6 +70743,18 @@
             "state" : "translated",
             "value" : "已將 %lld 個專案資料夾連結到桌布庫。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã liên kết %lld thư mục dự án vào thư viện."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -71076,6 +71756,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Loomscreen 將釋放對本機 Apple 空照圖資料夾的讀取權限。已套用的空照圖桌布保持不變；如需再次瀏覽空照圖庫，請重新連線。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "w4llpapr sẽ bỏ quyền đọc thư mục Apple Aerials. Hình nền cảnh bay đang dùng vẫn giữ nguyên, muốn duyệt lại thư viện thì kết nối lại."
           }
         }
       }
@@ -77758,6 +78444,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "缺少 %lld 個工作坊相依項目"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Thiếu %lld item Workshop phụ thuộc"
+                }
+              }
+            }
           }
         }
       }
@@ -91760,6 +92458,12 @@
             "state" : "translated",
             "value" : "macOS 需要一次性授權才能讀取 Apple 的桌布資料夾。按一下「授予存取權」即可，不需要選取特定檔案。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS cần duyệt một lần để đọc thư mục hình nền của Apple. Bấm \"Cấp quyền\", không cần chọn tệp nào."
+          }
         }
       }
     },
@@ -91818,6 +92522,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入影片"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm video"
           }
         }
       }
@@ -91878,6 +92588,12 @@
             "state" : "translated",
             "value" : "授予存取權"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cấp quyền"
+          }
         }
       }
     },
@@ -91936,6 +92652,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "套用專案"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áp dụng dự án"
           }
         }
       }
@@ -91996,6 +92718,12 @@
             "state" : "translated",
             "value" : "設定影片"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt video"
+          }
         }
       }
     },
@@ -92054,6 +92782,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "作為桌布使用"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng làm hình nền"
           }
         }
       }
@@ -105130,6 +105864,18 @@
             "state" : "translated",
             "value" : "已移除 %lld 筆註冊。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã xóa %lld đăng ký."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -109742,6 +110488,18 @@
             "state" : "translated",
             "value" : "已還原 %lld 台顯示器的配置。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã khôi phục cấu hình %lld màn."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -109878,6 +110636,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已還原 %lld 個喜歡的桌布。"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã khôi phục %lld hình nền đã thích."
+                }
+              }
+            }
           }
         }
       }
@@ -110016,6 +110786,18 @@
             "state" : "translated",
             "value" : "已還原 %lld 個已儲存書籤。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã khôi phục %lld dấu trang."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -110152,6 +110934,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已還原 %lld 個已儲存方案。"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã khôi phục %lld bộ màn hình."
+                }
+              }
+            }
           }
         }
       }
@@ -140233,6 +141027,24 @@
             "state" : "translated",
             "value" : "另外 %lld 台顯示器上的桌布、播放列表、排程、效果層和其他所有設定，都將取代為與這台顯示器相同的內容。它們的小工具和時鐘疊加層維持不變。"
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The wallpaper, playlist, schedule, effect layer, and all other settings on %lld other display are replaced with this display's. Its widget and clock overlays are not changed."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The wallpaper, playlist, schedule, effect layer, and all other settings on %lld other displays are replaced with this display's. Their widget and clock overlays are not changed."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -140370,6 +141182,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "另外 %lld 台顯示器上的桌布、播放列表、排程、效果層和其他所有設定，都將取代為與這台顯示器相同的內容。它們的小工具、音樂和時鐘疊加層維持不變。"
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The wallpaper, playlist, schedule, effect layer, and all other settings on %lld other display are replaced with this display's. Its widget, music, and clock overlays are not changed."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The wallpaper, playlist, schedule, effect layer, and all other settings on %lld other displays are replaced with this display's. Their widget, music, and clock overlays are not changed."
+                }
+              }
+            }
           }
         }
       }
@@ -141814,6 +142644,12 @@
             "state" : "translated",
             "value" : "此設定適用於其他 App（%1$@）。預期為 %2$@。"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cấu hình này của app khác (%1$@). Cần là %2$@."
+          }
         }
       }
     },
@@ -141873,6 +142709,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此設定是以不同版本建立的（結構描述 %1$lld）。此版本支援結構描述 1 到 %2$lld。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cấu hình này tạo từ phiên bản khác (schema %1$lld). Bản này hỗ trợ schema 1 đến %2$lld."
           }
         }
       }
@@ -142721,6 +143563,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這會取代另外 %2$lld 台顯示器上的%1$@疊加層，它們的桌布不受影響。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This replaces the %1$@ overlay on %2$#@displays@"
+          },
+          "substitutions" : {
+            "displays" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg other display. Its wallpaper is left alone."
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg other displays. Their wallpapers are left alone."
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -159103,6 +159973,12 @@
             "state" : "translated",
             "value" : "Loomscreen"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "w4llpapr"
+          }
         }
       }
     },
@@ -160266,6 +161142,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@（%2$@）"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ (%2$@)"
           }
         }
       }

@@ -325,6 +325,10 @@ final class WorkshopSetupController {
         await bindSteamLibrary(url)
     }
 
+    func w4RescanLibrary() async {
+        await folderImporter.ingestExistingDownloads(using: doctor)
+    }
+
     func bindSteamLibrary(_ url: URL) async {
         beginSetupAction()
         do {

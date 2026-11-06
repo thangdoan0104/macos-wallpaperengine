@@ -244,9 +244,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if !LITE_BUILD
         Task { @MainActor [weak self] in
             await W4FolderMemory.relinkAfterNewBuild(
+                currentLibraryPath: self?.workshopDoctorService.workdirDisplayPath,
                 library: { url in await self?.workshopSetupController.bindSteamLibrary(url) },
                 assets: { url in WPEEngineAssetsLibrary.shared.link(url) }
             )
+            // New items from WinDock's Steam show up without opening the Workshop page; skipped while nothing changed.
+            while !Task.isCancelled {
+                await self?.workshopSetupController.w4RescanLibrary()
+                try? await Task.sleep(for: .seconds(60))
+            }
         }
         #endif
         #endif
