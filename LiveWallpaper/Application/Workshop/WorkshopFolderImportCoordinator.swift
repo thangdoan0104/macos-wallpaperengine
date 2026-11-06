@@ -219,7 +219,11 @@ final class WorkshopFolderImportCoordinator {
 
     /// The download scan for launch and re-authorization: it needs a usable library grant, not SteamCMD.
     func ingestBoundLibraryDownloads(using doctor: SteamCMDDoctorService) async {
-        guard (try? doctor.resolveWorkdirURL()) != nil else { return }
+        guard (try? doctor.resolveWorkdirURL()) != nil else {
+            W4LibraryScanReport.shared.readDisk(steamRoot: nil)
+            W4LibraryScanReport.shared.finishedAt = Date()
+            return
+        }
         await scanDownloads(using: doctor, contentRoot: downloadedItemDates(using: doctor))
     }
 
@@ -230,19 +234,45 @@ final class WorkshopFolderImportCoordinator {
         if let contentRoot, lastCompletedScan == DownloadScanMark(contentRoot: contentRoot, history: historyMark()) {
             // The scan's Steam-deleted pass still runs: it also advances the prune baseline.
             await pruneSteamDeletedImports(using: doctor)
+            W4LibraryScanReport.shared.finishedAt = Date()
             return
         }
         await scanDownloads(using: doctor, contentRoot: contentRoot)
+    }
+
+    /// w4: brings back items the library remembers as deleted, then scans again.
+    func w4RestoreDeleted(_ ids: [String], using doctor: SteamCMDDoctorService) async {
+        var current = settings.loadGlobalSettings()
+        current.deletedWorkshopIDs.removeAll { ids.contains($0) }
+        settings.saveGlobalSettings(current)
+        await ingestBoundLibraryDownloads(using: doctor)
     }
 
     /// Skipped, not queued, while anything else imports: the scan reruns on a later Workshop visit.
     private func scanDownloads(using doctor: SteamCMDDoctorService, contentRoot: [String: Date]?) async {
         guard allowsImport, importer == nil else { return }
         importer = .downloadScan
+        let report = W4LibraryScanReport.shared
+        report.isScanning = true
         defer {
+            report.isScanning = false
             importer = nil
             if !isTerminated, !pendingFolders.isEmpty {
                 importProjects(from: pendingFolders.removeFirst())
+            }
+        }
+        let diskAccess = try? doctor.beginWorkdirAccess()
+        report.readDisk(steamRoot: diskAccess?.url)
+        diskAccess?.end()
+        if diskAccess == nil {
+            Logger.warning("Library scan has no access to the Steam folder", category: .workshop)
+            if !report.unannounced(["no-access"]).isEmpty {
+                toastCenter.post(
+                    headline: "Không đọc được thư mục Steam",
+                    title: "Thư viện Steam",
+                    message: "Xem Cài đặt → Workshop → Quét thư viện Steam.",
+                    isSuccess: false
+                )
             }
         }
 
@@ -276,10 +306,26 @@ final class WorkshopFolderImportCoordinator {
         var conflicts = 0
         // A read failure may be transient, so such a scan never lets a later visit skip.
         var unreadable = 0
+        var withProject = 0
+        var alreadyHeld = 0
+        var deletedOnDisk: [String] = []
+        let presetIDs = Set(settings.scenePresets.values.compactMap { preset -> String? in
+            if case .workshop(let workshopID) = preset.source { return workshopID }
+            return nil
+        })
 
         await doctor.enumerateDownloadedItemFolders { [weak self] folder in
             guard let self, allowsImport else { return }
             let id = folder.lastPathComponent
+            withProject += 1
+            if settings.deletedWorkshopIDs.contains(id) {
+                deletedOnDisk.append(id)
+            } else if known.contains(id) {
+                alreadyHeld += 1
+            }
+            if presetIDs.contains(id) {
+                W4FolderMemory.notePreset(folder: folder)
+            }
             guard !known.contains(id) else {
                 guard !settings.deletedWorkshopIDs.contains(id),
                       let existing = self.settings.conflictingWPEImport(workshopID: id, sourceFolder: folder, folders: folders) else { return }
@@ -324,6 +370,26 @@ final class WorkshopFolderImportCoordinator {
         guard allowsImport else { return }
         if let contentRoot, unreadable == 0 {
             lastCompletedScan = DownloadScanMark(contentRoot: contentRoot, history: historyMark())
+        }
+        let notes = W4FolderMemory.takeScanNotes()
+        report.foldersWithProject = withProject
+        report.inLibrary = alreadyHeld
+        report.added = added
+        report.relinked = repaired
+        report.conflicts = conflicts
+        report.skipped = notes.skipped
+        report.presets = notes.presets
+        report.deletedIDs = deletedOnDisk
+        report.finishedAt = Date()
+        Logger.info("Library scan: \(report.foldersOnDisk) folders, \(withProject) with project.json, \(alreadyHeld) held, \(added) added, \(notes.skipped.count) skipped, \(notes.presets.count) presets, \(deletedOnDisk.count) deleted, access \(report.hasAccess)", category: .workshop)
+        let newSkips = report.unannounced(notes.skipped)
+        if !newSkips.isEmpty {
+            toastCenter.post(
+                headline: "Có item không nhận được",
+                title: "Thư viện Steam",
+                message: newSkips.prefix(3).joined(separator: " · "),
+                isSuccess: false
+            )
         }
         guard added > 0 || repaired > 0 || conflicts > 0 else { return }
         toastCenter.post(
@@ -547,6 +613,7 @@ final class WorkshopFolderImportCoordinator {
                     preset,
                     clearsDeleteTombstone: deliberate
                 )
+                W4FolderMemory.notePreset(folder: projectFolder)
                 return .imported
             case let .sceneFailure(cause, _, _):
                 Logger.warning("Failed to read a scene during import: \(cause.reason)", category: .workshop)

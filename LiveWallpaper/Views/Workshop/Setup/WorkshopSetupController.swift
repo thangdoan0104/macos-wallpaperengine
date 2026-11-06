@@ -329,6 +329,15 @@ final class WorkshopSetupController {
         await folderImporter.ingestExistingDownloads(using: doctor)
     }
 
+    /// Runs the scan even when nothing appears changed, for the Settings button.
+    func w4ForceRescan() async {
+        await folderImporter.ingestBoundLibraryDownloads(using: doctor)
+    }
+
+    func w4RestoreDeleted(_ ids: [String]) async {
+        await folderImporter.w4RestoreDeleted(ids, using: doctor)
+    }
+
     func bindSteamLibrary(_ url: URL) async {
         beginSetupAction()
         do {

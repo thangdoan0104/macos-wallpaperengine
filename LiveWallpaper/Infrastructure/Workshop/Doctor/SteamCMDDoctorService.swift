@@ -1457,7 +1457,10 @@ final class SteamCMDDoctorService {
     }
 
     func beginWorkdirAccess() throws -> WorkdirAccess {
-        guard let data = workdirBookmarkData else { throw SteamCMDDoctorError.missingWorkdirBinding }
+        guard let data = workdirBookmarkData else {
+            if let direct = directWorkdirAccess() { return direct }
+            throw SteamCMDDoctorError.missingWorkdirBinding
+        }
         switch bookmarkResolver.resolve(data, target: .transient) {
         case .success(let resolved):
             let url = resolved.url.resolvingSymlinksInPath().standardizedFileURL
@@ -1465,6 +1468,7 @@ final class SteamCMDDoctorService {
             // Outside the container only a live sandbox extension opens the library; without one every scan reads as empty.
             guard WPEEngineAssetsLibrary.isContainerInternal(url) || (resolved.isSecurityScoped && access.isOpen) else {
                 access.end()
+                if let direct = directWorkdirAccess() { return direct }
                 workdirResolutionFailed = true
                 Logger.warning("Steam library grant resolved without sandbox access; re-authorization needed", category: .workshop)
                 throw SteamCMDDoctorError.bookmarkResolution(url.path(percentEncoded: false))
@@ -1479,9 +1483,19 @@ final class SteamCMDDoctorService {
             workdirResolutionFailed = false
             return access
         case .failure(let failure):
+            if let direct = directWorkdirAccess() { return direct }
             workdirResolutionFailed = true
             throw SteamCMDDoctorError.bookmarkResolution(failure.localizedDescription)
         }
+    }
+
+    /// w4: bookmarks don't reliably survive across builds, but the entitlement still opens WinDock's folder.
+    private func directWorkdirAccess() -> WorkdirAccess? {
+        guard let url = W4FolderMemory.directlyReadableLibrary else { return nil }
+        let canonical = url.resolvingSymlinksInPath().standardizedFileURL
+        workdirDisplayPath = canonical.path(percentEncoded: false)
+        workdirResolutionFailed = false
+        return WorkdirAccess(url: canonical, scopedURL: canonical)
     }
 
     private func refreshDisplayPaths() {

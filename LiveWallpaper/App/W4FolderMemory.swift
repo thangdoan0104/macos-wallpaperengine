@@ -2,6 +2,7 @@ import AppKit
 import Darwin
 import Foundation
 import LiveWallpaperCore
+import Observation
 
 /// w4: macOS drops folder permissions when a build signed outside Apple's program is replaced,
 /// so the chosen folders are remembered and relinked on the first launch of each new build.
@@ -24,14 +25,33 @@ enum W4FolderMemory {
 
     /// A project the import passed over, named by the title in its project.json.
     static func noteSkipped(folder: URL, reason: String) {
-        var name = folder.lastPathComponent
+        let name = title(of: folder)
+        skipped.append("\(name): \(reason)")
+        Logger.warning("Import skipped \(name) in \(folder.path(percentEncoded: false)): \(reason)", category: .workshop)
+    }
+
+    nonisolated(unsafe) private static var presets: [String] = []
+
+    /// A project that registers as a variation of another scene instead of a wallpaper of its own.
+    static func notePreset(folder: URL) {
+        presets.append(title(of: folder))
+    }
+
+    static func takeScanNotes() -> (skipped: [String], presets: [String]) {
+        defer {
+            skipped = []
+            presets = []
+        }
+        return (skipped, presets)
+    }
+
+    private static func title(of folder: URL) -> String {
         if let data = try? Data(contentsOf: folder.appendingPathComponent("project.json")),
            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let title = object["title"] as? String, !title.isEmpty {
-            name = title
+            return title
         }
-        skipped.append("\(name): \(reason)")
-        Logger.warning("Import skipped \(name) in \(folder.path(percentEncoded: false)): \(reason)", category: .workshop)
+        return folder.lastPathComponent
     }
 
     static func takeSkippedNote() -> String? {
@@ -60,11 +80,16 @@ enum W4FolderMemory {
         return !((try? FileManager.default.contentsOfDirectory(atPath: content.path)) ?? []).isEmpty
     }
 
-    /// WinDock's Steam wins unless the remembered folder really holds Workshop items.
+    /// WinDock's Steam is where new items land, so it wins whenever it holds Workshop items.
     private static var preferredLibraryPath: String? {
-        if let stored = libraryPath, hasWorkshopItems(stored) { return stored }
         let windock = realHome.appendingPathComponent(windockSteam, isDirectory: true).path
         return hasWorkshopItems(windock) ? windock : libraryPath
+    }
+
+    /// The library reachable through the App Support entitlement alone, for when no bookmark grant survives.
+    static var directlyReadableLibrary: URL? {
+        guard let path = preferredLibraryPath, hasWorkshopItems(path) else { return nil }
+        return URL(fileURLWithPath: path, isDirectory: true)
     }
 
     private static var preferredAssetsPath: String? {
@@ -92,5 +117,54 @@ enum W4FolderMemory {
             await library(URL(fileURLWithPath: path, isDirectory: true))
             Logger.info("Linked Steam library", category: .workshop)
         }
+    }
+}
+
+/// What the last library scan saw, shown in Settings so a missing item has a visible reason.
+@MainActor
+@Observable
+final class W4LibraryScanReport {
+    static let shared = W4LibraryScanReport()
+
+    var isScanning = false
+    var finishedAt: Date?
+    var libraryPath: String?
+    var hasAccess = true
+    var foldersOnDisk = 0
+    var foldersWithProject = 0
+    var stillDownloading = 0
+    var inLibrary = 0
+    var added = 0
+    var relinked = 0
+    var conflicts = 0
+    var presets: [String] = []
+    var skipped: [String] = []
+    var deletedIDs: [String] = []
+
+    /// Reads folder counts while the caller holds library access.
+    func readDisk(steamRoot: URL?) {
+        libraryPath = steamRoot?.path(percentEncoded: false)
+        hasAccess = steamRoot != nil
+        guard let steamRoot else {
+            foldersOnDisk = 0
+            stillDownloading = 0
+            return
+        }
+        let workshop = steamRoot.appendingPathComponent("steamapps/workshop", isDirectory: true)
+        func folderCount(_ relative: String) -> Int {
+            let names = (try? FileManager.default.contentsOfDirectory(
+                atPath: workshop.appendingPathComponent(relative).path
+            )) ?? []
+            return names.filter { !$0.hasPrefix(".") }.count
+        }
+        foldersOnDisk = folderCount("content/431960")
+        stillDownloading = folderCount("downloads/431960")
+    }
+
+    /// Reasons not yet shown in a toast, so the recurring scan doesn't repeat them every minute.
+    private var announced: Set<String> = []
+
+    func unannounced(_ lines: [String]) -> [String] {
+        lines.filter { announced.insert($0).inserted }
     }
 }

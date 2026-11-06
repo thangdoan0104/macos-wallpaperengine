@@ -37,6 +37,8 @@ struct WorkshopSettingsView: View {
 
             WorkshopConnectionSetup()
 
+            W4LibraryScanSection()
+
             WorkshopEngineAssetsSection()
 
             WorkshopAPIKeySection(services: workshopServices)
