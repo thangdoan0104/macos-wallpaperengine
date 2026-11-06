@@ -16,12 +16,25 @@ final class W4DesktopPictureSync {
     /// A capture can wait forever on a scene that stopped drawing; it must not block the next wallpaper.
     private static let captureTimeout: TimeInterval = 10
 
+    /// Compared by value: a printed description can reorder dictionaries between reads and look like a new wallpaper.
+    private struct Target: Equatable {
+        let session: ObjectIdentifier
+        let wallpaper: WallpaperContent
+        let fitMode: VideoFitMode
+        let size: CGSize
+    }
+
     private struct ScreenState {
-        let key: String
+        var target: Target
         var changedAt = Date()
+        /// Survives target changes, so a target that keeps changing can't postpone the capture forever.
+        var pendingSince = Date()
         var captures = 0
         var lastAttemptAt: Date?
     }
+
+    /// A capture is forced after this long, even if the target hasn't held still.
+    private static let pendingLimit: TimeInterval = 5
 
     private weak var manager: ScreenManager?
     private var timer: Timer?
@@ -29,6 +42,7 @@ final class W4DesktopPictureSync {
     private var states: [CGDirectDisplayID: ScreenState] = [:]
     private var inFlightSince: [CGDirectDisplayID: Date] = [:]
     private var installed: [CGDirectDisplayID: URL] = [:]
+    private var lastBlock: [CGDirectDisplayID: String] = [:]
 
     func start(manager: ScreenManager) {
         self.manager = manager
@@ -67,8 +81,13 @@ final class W4DesktopPictureSync {
         }
     }
 
-    private func stateKey(screen: Screen, session: AnyObject, configuration: ScreenConfiguration) -> String {
-        "\(configuration.activeWallpaper)|\(configuration.fitMode)|\(ObjectIdentifier(session))|\(screen.frame.size)"
+    /// Logged only when the reason changes, so the log says why a screen isn't syncing without repeating every second.
+    private func noteBlocked(_ id: CGDirectDisplayID, _ reason: String?) {
+        guard lastBlock[id] != reason else { return }
+        lastBlock[id] = reason
+        if let reason {
+            Logger.info("Desktop sync waits on screen \(id): \(reason)", category: .screenManager)
+        }
     }
 
     private func tick() {
@@ -76,46 +95,81 @@ final class W4DesktopPictureSync {
         let now = Date()
         for screen in manager.screens {
             let id = screen.id
+            // A stopped scene draws no frame to capture; it syncs once it plays again.
+            if let reasons = manager.suspendReasonsByScreen[id], !reasons.isEmpty {
+                noteBlocked(id, "suspended \(reasons.map(\.rawValue).sorted())")
+                continue
+            }
+            if screen.playbackController?.userIntendsToPlay == false {
+                noteBlocked(id, "paused by user")
+                continue
+            }
             // While a wallpaper loads, the running session may still be the previous one.
-            // A stopped scene draws no next frame to capture; it syncs once it plays again.
-            guard (manager.suspendReasonsByScreen[id] ?? []).isEmpty,
-                  screen.playbackController?.userIntendsToPlay ?? true,
-                  manager.wallpaperLoads.attempt(for: screen) == nil,
-                  let session = screen.runtimeSession,
-                  let configuration = manager.getConfiguration(for: screen) else { continue }
-            let key = stateKey(screen: screen, session: session as AnyObject, configuration: configuration)
-            var state = states[id] ?? ScreenState(key: key)
-            if state.key != key {
-                state = ScreenState(key: key)
+            if let attempt = manager.wallpaperLoads.attempt(for: screen) {
+                noteBlocked(id, "load attempt \(attempt.phase)")
+                continue
+            }
+            guard let session = screen.runtimeSession,
+                  let configuration = manager.getConfiguration(for: screen) else {
+                noteBlocked(id, "no session")
+                continue
+            }
+            noteBlocked(id, nil)
+            let sessionID = ObjectIdentifier(session as AnyObject)
+            let target = Target(
+                session: sessionID,
+                wallpaper: configuration.activeWallpaper,
+                fitMode: configuration.fitMode,
+                size: screen.frame.size
+            )
+            var state = states[id] ?? ScreenState(target: target)
+            if state.target != target {
+                let pendingSince = state.captures == 0 ? state.pendingSince : now
+                state = ScreenState(target: target, pendingSince: pendingSince)
+                Logger.info("Desktop sync: new wallpaper on screen \(id)", category: .screenManager)
             }
             states[id] = state
-            if let since = inFlightSince[id], now.timeIntervalSince(since) < Self.captureTimeout { continue }
+            if let since = inFlightSince[id] {
+                guard now.timeIntervalSince(since) >= Self.captureTimeout else { continue }
+                Logger.warning("Desktop sync: capture on screen \(id) took over \(Self.captureTimeout)s", category: .screenManager)
+            }
             guard state.captures < 2, isDue(state, now: now) else { continue }
             states[id]?.lastAttemptAt = now
             inFlightSince[id] = now
             Task { [weak self] in
-                await self?.capture(screen: screen, configuration: configuration, key: key, startedAt: now)
+                await self?.capture(screen: screen, configuration: configuration, sessionID: sessionID, startedAt: now)
             }
         }
     }
 
     private func isDue(_ state: ScreenState, now: Date) -> Bool {
         if state.captures == 0 {
-            guard now.timeIntervalSince(state.changedAt) >= Self.settleDelay else { return false }
+            guard now.timeIntervalSince(state.changedAt) >= Self.settleDelay
+                || now.timeIntervalSince(state.pendingSince) >= Self.pendingLimit else { return false }
             return state.lastAttemptAt.map { now.timeIntervalSince($0) >= Self.retryDelay } ?? true
         }
         return state.lastAttemptAt.map { now.timeIntervalSince($0) >= Self.confirmDelay } ?? true
     }
 
-    private func capture(screen: Screen, configuration: ScreenConfiguration, key: String, startedAt: Date) async {
+    private func capture(screen: Screen, configuration: ScreenConfiguration, sessionID: ObjectIdentifier, startedAt: Date) async {
         let id = screen.id
         defer {
             if inFlightSince[id] == startedAt { inFlightSince[id] = nil }
         }
-        guard let image = await WallpaperCoverCapture.wallpaperFrame(screen: screen, configuration: configuration),
-              let target = nsScreen(for: id),
-              states[id]?.key == key,
-              let frame = Self.displayShaped(image, on: target, fitMode: configuration.fitMode) else { return }
+        guard let image = await WallpaperCoverCapture.wallpaperFrame(screen: screen, configuration: configuration) else {
+            Logger.info("Desktop sync: no frame from screen \(id)", category: .screenManager)
+            return
+        }
+        guard let session = screen.runtimeSession, ObjectIdentifier(session as AnyObject) == sessionID,
+              manager?.wallpaperLoads.attempt(for: screen) == nil else {
+            Logger.info("Desktop sync: wallpaper on screen \(id) changed during capture", category: .screenManager)
+            return
+        }
+        guard let target = nsScreen(for: id),
+              let frame = Self.displayShaped(image, on: target, fitMode: configuration.fitMode) else {
+            Logger.warning("Desktop sync: could not draw frame for screen \(id)", category: .screenManager)
+            return
+        }
         var installedURL: URL?
         let outcome = await DesktopPictureFrameExtractor.applyFrame(
             { frame },
@@ -126,11 +180,10 @@ final class W4DesktopPictureSync {
                 installedURL = url
             }
         )
+        Logger.info("Desktop sync: screen \(id) outcome \(outcome), macOS reports match \(NSWorkspace.shared.desktopImageURL(for: target) == installedURL)", category: .screenManager)
         guard outcome == .captured else { return }
         installed[id] = installedURL
-        if states[id]?.key == key {
-            states[id]?.captures += 1
-        }
+        states[id]?.captures += 1
     }
 
     /// The picture at the display's own pixels, so macOS has nothing left to crop differently from the wallpaper window.
