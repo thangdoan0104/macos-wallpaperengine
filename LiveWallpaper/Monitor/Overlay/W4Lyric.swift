@@ -37,6 +37,33 @@ struct W4LyricStyle: Codable, Equatable, Sendable {
     var widthFraction = 0.7
     var offset = 0.0
     var screens: [String: W4LyricScreen] = [:]
+    var fontFamily = ""
+    var favoriteFonts: [String] = []
+    var recentFonts: [String] = []
+
+    init() {}
+
+    /// Field by field, so a setting added in a later build never wipes what is already saved.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? enabled
+        size = try c.decodeIfPresent(Double.self, forKey: .size) ?? size
+        bold = try c.decodeIfPresent(Bool.self, forKey: .bold) ?? bold
+        currentHex = try c.decodeIfPresent(String.self, forKey: .currentHex) ?? currentHex
+        nextHex = try c.decodeIfPresent(String.self, forKey: .nextHex) ?? nextHex
+        nextOpacity = try c.decodeIfPresent(Double.self, forKey: .nextOpacity) ?? nextOpacity
+        showNext = try c.decodeIfPresent(Bool.self, forKey: .showNext) ?? showNext
+        align = try c.decodeIfPresent(W4LyricAlign.self, forKey: .align) ?? align
+        reveal = try c.decodeIfPresent(W4LyricReveal.self, forKey: .reveal) ?? reveal
+        revealSpeed = try c.decodeIfPresent(Double.self, forKey: .revealSpeed) ?? revealSpeed
+        shadow = try c.decodeIfPresent(Double.self, forKey: .shadow) ?? shadow
+        widthFraction = try c.decodeIfPresent(Double.self, forKey: .widthFraction) ?? widthFraction
+        offset = try c.decodeIfPresent(Double.self, forKey: .offset) ?? offset
+        screens = try c.decodeIfPresent([String: W4LyricScreen].self, forKey: .screens) ?? screens
+        fontFamily = try c.decodeIfPresent(String.self, forKey: .fontFamily) ?? fontFamily
+        favoriteFonts = try c.decodeIfPresent([String].self, forKey: .favoriteFonts) ?? favoriteFonts
+        recentFonts = try c.decodeIfPresent([String].self, forKey: .recentFonts) ?? recentFonts
+    }
 
     func screen(_ name: String) -> W4LyricScreen { screens[name] ?? W4LyricScreen() }
 }
@@ -157,6 +184,8 @@ final class W4LyricController: ObservableObject {
     @Published private(set) var active = -1
     @Published private(set) var nowPlaying: MonitorNowPlayingState?
     @Published private(set) var statusText = ""
+    /// The font under the pointer in the picker, shown on the real lyric until the pointer leaves.
+    @Published var previewFontFamily: String?
 
     private let subscriberID = UUID()
     private var trackKey = ""
@@ -199,6 +228,18 @@ final class W4LyricController: ObservableObject {
 
     var isVisible: Bool {
         style.enabled && nowPlaying?.phase == .playing
+    }
+
+    var activeLineText: String {
+        let lines = displayLines
+        return lines.indices.contains(active) ? lines[active].text : ""
+    }
+
+    func font(size: Double, bold: Bool) -> Font {
+        let family = previewFontFamily ?? style.fontFamily
+        let weight: Font.Weight = bold ? .bold : .semibold
+        if family.isEmpty { return .system(size: size, weight: weight, design: .rounded) }
+        return Font.custom(family, size: size).weight(weight)
     }
 
     func playhead(at date: Date) -> Double {
@@ -344,7 +385,7 @@ struct W4LyricView: View {
         return TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !revealing)) { context in
             lineText(line, next: next, base: base, revealing: revealing, now: context.date)
         }
-        .font(.system(size: style.size, weight: style.bold ? .bold : .semibold, design: .rounded))
+        .font(controller.font(size: style.size, bold: style.bold))
         .lineLimit(1)
         .minimumScaleFactor(0.45)
         .scaleEffect(isCurrent ? 1 : sideScale, anchor: anchor)
@@ -375,10 +416,225 @@ struct W4LyricView: View {
     }
 }
 
+// MARK: - Font picker
+
+struct W4FontInfo: Identifiable, Equatable {
+    enum Kind: Equatable { case sans, serif, script, mono, display, other }
+
+    let family: String
+    let kind: Kind
+    let hasVietnamese: Bool
+    let hasCJK: Bool
+    var id: String { family }
+}
+
+@MainActor
+enum W4FontCatalog {
+    private static var cached: [W4FontInfo]?
+
+    static var all: [W4FontInfo] {
+        if let cached { return cached }
+        let vietnamese = "ăâđêôơưạệộựằ".unicodeScalars
+        let cjk = "月光夜の".unicodeScalars
+        let built = NSFontManager.shared.availableFontFamilies
+            .filter { !$0.hasPrefix(".") }
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+            .compactMap { family -> W4FontInfo? in
+                guard let font = NSFontManager.shared.font(withFamily: family, traits: [], weight: 5, size: 14) else { return nil }
+                let raw = font.fontDescriptor.symbolicTraits.rawValue
+                let kind: W4FontInfo.Kind
+                if raw & (1 << 10) != 0 {
+                    kind = .mono
+                } else {
+                    switch (raw >> 28) & 0xF {
+                    case 1, 2, 3, 4, 5, 7: kind = .serif
+                    case 8: kind = .sans
+                    case 9: kind = .display
+                    case 10: kind = .script
+                    default: kind = .other
+                    }
+                }
+                let covered = font.coveredCharacterSet
+                return W4FontInfo(family: family, kind: kind,
+                                  hasVietnamese: vietnamese.allSatisfy { covered.contains($0) },
+                                  hasCJK: cjk.allSatisfy { covered.contains($0) })
+            }
+        cached = built
+        return built
+    }
+}
+
+struct W4FontPicker: View {
+    enum Filter: String, CaseIterable, Identifiable {
+        case all = "Tất cả"
+        case favorite = "Yêu thích"
+        case recent = "Gần đây"
+        case vietnamese = "Có tiếng Việt"
+        case cjk = "Có chữ Hán"
+        case sans = "Không chân"
+        case serif = "Có chân"
+        case script = "Viết tay"
+        case mono = "Đơn cách"
+        case display = "Trang trí"
+        var id: String { rawValue }
+    }
+
+    @ObservedObject var controller: W4LyricController
+    @State private var query = ""
+    @State private var filter = Filter.all
+    @State private var fonts: [W4FontInfo] = []
+
+    private var shown: [W4FontInfo] {
+        let style = controller.style
+        var list = fonts
+        switch filter {
+        case .all: break
+        case .favorite: list = list.filter { style.favoriteFonts.contains($0.family) }
+        case .recent:
+            list = style.recentFonts.compactMap { name in fonts.first { $0.family == name } }
+        case .vietnamese: list = list.filter(\.hasVietnamese)
+        case .cjk: list = list.filter(\.hasCJK)
+        case .sans: list = list.filter { $0.kind == .sans }
+        case .serif: list = list.filter { $0.kind == .serif }
+        case .script: list = list.filter { $0.kind == .script }
+        case .mono: list = list.filter { $0.kind == .mono }
+        case .display: list = list.filter { $0.kind == .display }
+        }
+        let text = query.trimmingCharacters(in: .whitespaces)
+        if !text.isEmpty {
+            list = list.filter { $0.family.range(of: text, options: [.caseInsensitive, .diacriticInsensitive]) != nil }
+        }
+        return list
+    }
+
+    private var sample: String {
+        let line = controller.activeLineText
+        return line.isEmpty ? "Lyric của m sẽ hiện như thế này" : line
+    }
+
+    private func pick(_ family: String) {
+        var style = controller.style
+        style.fontFamily = family
+        if !family.isEmpty {
+            style.recentFonts.removeAll { $0 == family }
+            style.recentFonts.insert(family, at: 0)
+            style.recentFonts = Array(style.recentFonts.prefix(10))
+        }
+        controller.style = style
+    }
+
+    private func toggleFavorite(_ family: String) {
+        var style = controller.style
+        if style.favoriteFonts.contains(family) {
+            style.favoriteFonts.removeAll { $0 == family }
+        } else {
+            style.favoriteFonts.append(family)
+        }
+        controller.style = style
+    }
+
+    private func row(_ info: W4FontInfo) -> some View {
+        let selected = controller.style.fontFamily == info.family
+        let favorite = controller.style.favoriteFonts.contains(info.family)
+        return HStack(spacing: 8) {
+            Button { pick(info.family) } label: {
+                HStack(spacing: 8) {
+                    Text(verbatim: info.family)
+                        .font(.custom(info.family, size: 16))
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
+                    if info.hasVietnamese {
+                        Text(verbatim: "VI").font(.caption2).foregroundStyle(.secondary)
+                    }
+                    if selected {
+                        Image(systemName: "checkmark").foregroundStyle(.tint)
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            Button { toggleFavorite(info.family) } label: {
+                Image(systemName: favorite ? "star.fill" : "star")
+                    .foregroundStyle(favorite ? Color.yellow : Color.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: favorite ? "Bỏ yêu thích \(info.family)" : "Yêu thích \(info.family)"))
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 32)
+        .onHover { inside in
+            if inside {
+                controller.previewFontFamily = info.family
+            } else if controller.previewFontFamily == info.family {
+                controller.previewFontFamily = nil
+            }
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(verbatim: sample)
+                .font(controller.font(size: 22, bold: controller.style.bold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(maxWidth: .infinity, minHeight: 44)
+            TextField("", text: $query, prompt: Text(verbatim: "Tìm phông"))
+                .textFieldStyle(.roundedBorder)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(Filter.allCases) { item in
+                        Button(item.rawValue) { filter = item }
+                            .buttonStyle(.bordered)
+                            .tint(filter == item ? Color.accentColor : Color.secondary)
+                            .controlSize(.small)
+                    }
+                }
+            }
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    Button { pick("") } label: {
+                        HStack {
+                            Text(verbatim: "Mặc định của hệ thống").font(.system(size: 15, design: .rounded))
+                            Spacer()
+                            if controller.style.fontFamily.isEmpty {
+                                Image(systemName: "checkmark").foregroundStyle(.tint)
+                            }
+                        }
+                        .padding(.horizontal, 10)
+                        .frame(height: 32)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    ForEach(shown) { info in
+                        row(info)
+                    }
+                }
+            }
+            Text(verbatim: "Rê chuột để xem ngay trên lyric, bấm để chọn. VI là phông có đủ dấu tiếng Việt.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(12)
+        .frame(width: 400, height: 500)
+        .onAppear { fonts = W4FontCatalog.all }
+        .onDisappear { controller.previewFontFamily = nil }
+    }
+}
+
 // MARK: - Settings section
 
 struct W4LyricSettingsSection: View {
     @ObservedObject private var controller = W4LyricController.shared
+    @State private var showingFonts = false
+
+    private func stepFont(_ delta: Int) {
+        let list = W4FontCatalog.all.map(\.family)
+        guard !list.isEmpty else { return }
+        let current = list.firstIndex(of: controller.style.fontFamily) ?? (delta > 0 ? -1 : 0)
+        let next = (current + delta + list.count) % list.count
+        controller.style.fontFamily = list[next]
+    }
 
     private func bind<T>(_ path: WritableKeyPath<W4LyricStyle, T>) -> Binding<T> {
         Binding(get: { controller.style[keyPath: path] }, set: { controller.style[keyPath: path] = $0 })
@@ -462,6 +718,24 @@ struct W4LyricSettingsSection: View {
             }
             if controller.style.reveal != .off {
                 slider("Tốc độ hiện chữ", icon: "speedometer", value: bind(\.revealSpeed), range: 0.5...2)
+            }
+            SettingRow(icon: "textformat", iconColor: .pink, title: "Phông chữ") {
+                HStack(spacing: 6) {
+                    Button { stepFont(-1) } label: { Image(systemName: "chevron.left") }
+                        .accessibilityLabel(Text(verbatim: "Phông trước"))
+                    Button {
+                        showingFonts = true
+                    } label: {
+                        Text(verbatim: controller.style.fontFamily.isEmpty ? "Mặc định" : controller.style.fontFamily)
+                            .lineLimit(1)
+                            .frame(minWidth: 120, maxWidth: 200)
+                    }
+                    .popover(isPresented: $showingFonts, arrowEdge: .bottom) {
+                        W4FontPicker(controller: controller)
+                    }
+                    Button { stepFont(1) } label: { Image(systemName: "chevron.right") }
+                        .accessibilityLabel(Text(verbatim: "Phông sau"))
+                }
             }
             slider("Cỡ chữ", icon: "textformat.size", value: bind(\.size), range: 18...120)
             slider("Độ rộng khung", icon: "arrow.left.and.right", value: bind(\.widthFraction), range: 0.3...1)
