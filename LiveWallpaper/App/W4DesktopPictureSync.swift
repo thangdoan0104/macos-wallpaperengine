@@ -63,6 +63,42 @@ final class W4DesktopPictureSync {
         }
     }
 
+    private static let enabledKey = "W4.DesktopSyncEnabled"
+    private static let originalPrefix = "W4.OriginalDesktop."
+
+    static var isEnabled: Bool {
+        UserDefaults.appScoped().object(forKey: enabledKey) as? Bool ?? true
+    }
+
+    func setEnabled(_ enabled: Bool) {
+        UserDefaults.appScoped().set(enabled, forKey: Self.enabledKey)
+        // Turning it back on should sync what is playing now, not wait for the next change.
+        states = [:]
+        if !enabled { installed = [:] }
+    }
+
+    /// Kept per display name, the first time this app replaces that display's picture.
+    private func rememberOriginal(of target: NSScreen) {
+        let key = Self.originalPrefix + target.localizedName
+        let defaults = UserDefaults.appScoped()
+        guard defaults.string(forKey: key) == nil, let current = NSWorkspace.shared.desktopImageURL(for: target),
+              !current.path.hasPrefix(DesktopPictureFrameExtractor.picturesDirectory.path) else { return }
+        defaults.set(current.path, forKey: key)
+    }
+
+    /// Stops syncing and returns how many displays got their picture back.
+    func restoreOriginals() -> Int {
+        setEnabled(false)
+        var restored = 0
+        for target in NSScreen.screens {
+            guard let path = UserDefaults.appScoped().string(forKey: Self.originalPrefix + target.localizedName) else { continue }
+            if (try? NSWorkspace.shared.setDesktopImageURL(URL(fileURLWithPath: path), for: target, options: [:])) != nil {
+                restored += 1
+            }
+        }
+        return restored
+    }
+
     private func nsScreen(for id: CGDirectDisplayID) -> NSScreen? {
         NSScreen.screens.first {
             ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value == id
@@ -70,6 +106,7 @@ final class W4DesktopPictureSync {
     }
 
     private func reinstallForActiveSpace() {
+        guard Self.isEnabled else { return }
         for (id, url) in installed {
             guard let target = nsScreen(for: id),
                   NSWorkspace.shared.desktopImageURL(for: target) != url,
@@ -88,7 +125,7 @@ final class W4DesktopPictureSync {
     }
 
     private func tick() {
-        guard let manager, manager.wallpapersGloballyEnabled else { return }
+        guard Self.isEnabled, let manager, manager.wallpapersGloballyEnabled else { return }
         let now = Date()
         for screen in manager.screens {
             let id = screen.id
@@ -167,6 +204,8 @@ final class W4DesktopPictureSync {
             Logger.warning("Desktop sync: could not draw frame for screen \(id)", category: .screenManager)
             return
         }
+        guard Self.isEnabled else { return }
+        rememberOriginal(of: target)
         var installedURL: URL?
         let outcome = await DesktopPictureFrameExtractor.applyFrame(
             { frame },

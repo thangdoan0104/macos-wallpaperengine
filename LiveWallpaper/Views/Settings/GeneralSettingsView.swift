@@ -234,6 +234,10 @@ struct GeneralSettingsView: View {
         case .general:
             settingsForm {
                 generalSection
+                #if !MAS_BUILD
+                W4DesktopPictureSection()
+                W4DockSection()
+                #endif
             }
         case .performancePower:
             settingsForm {

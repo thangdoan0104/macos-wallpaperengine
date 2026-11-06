@@ -6,7 +6,7 @@ import Observation
 @MainActor @Observable
 final class EditDeskRouter {
     enum Page: Hashable {
-        case home, library, schemes, systemWallpaper, workshop, settings
+        case home, library, games, schemes, systemWallpaper, workshop, settings
     }
 
     /// What to import and which display it lands on, in one value: as two notifications the target

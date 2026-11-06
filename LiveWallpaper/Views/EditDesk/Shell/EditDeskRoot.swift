@@ -91,6 +91,13 @@ struct EditDeskRoot: View {
                         // One page: the library is the stage's p = 2 state, not a separate view.
                         homePage(router)
                             .transition(.opacity)
+                    case .games:
+                        #if !LITE_BUILD
+                        W4GamesPage(router: router)
+                            .transition(.opacity)
+                        #else
+                        Color.clear
+                        #endif
                     case .schemes:
                         SchemesPage(router: router, toasts: toasts)
                             .transition(.opacity)

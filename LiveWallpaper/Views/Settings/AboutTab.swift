@@ -123,6 +123,10 @@ extension GeneralSettingsView {
             Text(verbatim: "© 2026 Loomscreen contributors · MIT License")
                 .font(DesignTokens.Typography.caption)
                 .foregroundStyle(.tertiary)
+
+            Text(verbatim: "Nâng ảnh: Real-ESRGAN của Xintao Wang và cộng sự (BSD-3-Clause) · Hình: Wallhaven · Font VT323 (OFL)")
+                .font(DesignTokens.Typography.caption)
+                .foregroundStyle(.tertiary)
         }
         .multilineTextAlignment(.center)
         .textSelection(.enabled)

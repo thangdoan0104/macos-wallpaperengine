@@ -74,7 +74,7 @@ enum W4FolderMemory {
     private static let windockSteam = "Library/Application Support/WinDock/Gaming/Runtime.app/Contents/SharedSupport/prefix/drive_c/Program Files (x86)/Steam"
 
     /// The sandbox maps homeDirectoryForCurrentUser into the container, so take the real home from the account record.
-    private static var realHome: URL {
+    static var realHome: URL {
         let home = getpwuid(getuid()).flatMap { String(validatingCString: $0.pointee.pw_dir) } ?? NSHomeDirectory()
         return URL(fileURLWithPath: home, isDirectory: true)
     }

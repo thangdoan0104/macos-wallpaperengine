@@ -6,7 +6,11 @@ struct NavPill: View {
     let workshopAvailable: Bool
 
     static func items(workshopAvailable: Bool, systemWallpaperAvailable: Bool) -> [EditDeskRouter.Page] {
-        var items: [EditDeskRouter.Page] = [.home, .library, .schemes]
+        var items: [EditDeskRouter.Page] = [.home, .library]
+        #if !LITE_BUILD
+        items.append(.games)
+        #endif
+        items.append(.schemes)
         #if !MAS_BUILD
         if systemWallpaperAvailable {
             items.append(.systemWallpaper)
@@ -41,6 +45,7 @@ struct NavPill: View {
         switch item {
         case .home: "Overview"
         case .library: "Wallpaper Library"
+        case .games: "Games"
         case .schemes: "Schemes"
         case .systemWallpaper: "System Wallpaper"
         case .workshop: "Workshop"

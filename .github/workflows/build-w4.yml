@@ -11,6 +11,8 @@ concurrency:
 env:
   OFFICIAL_DMG: https://github.com/Paradox07127/macos-wallpaperengine/releases/download/loomscreen-v1.0.1/Loomscreen-Pro-1.0.1.dmg
   OFFICIAL_SHA256: b0fc5f14f7d0ab90475508d359a66532e607836386ae0f876b9b38badb7a0f09
+  UPSCALER_ZIP: https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-macos.zip
+  UPSCALER_SHA256: e0ad05580abfeb25f8d8fb55aaf7bedf552c375b5b4d9bd3c8d59764d2cc333a
 jobs:
   build:
     runs-on: xcode-27
@@ -59,6 +61,25 @@ jobs:
           ditto "$OFFICIAL/Contents/Resources/WPEShaderCompilerNotices" "$RUNNER_TEMP/helper/notices"
           (cd "$OFFICIAL" && find Contents -maxdepth 3 -not -path '*/Resources/*' | sort) > official-tree.txt
           hdiutil detach "$RUNNER_TEMP/official"
+      - name: Upscaler
+        run: |
+          curl -fsSL -o upscaler.zip "$UPSCALER_ZIP"
+          echo "$UPSCALER_SHA256  upscaler.zip" | shasum -a 256 -c -
+          U="$RUNNER_TEMP/upscaler"
+          mkdir -p "$U/models"
+          unzip -q upscaler.zip realesrgan-ncnn-vulkan 'models/realesrgan-x4plus*' -d "$U"
+          curl -fsSL -o "$U/LICENSE-Real-ESRGAN.txt" https://raw.githubusercontent.com/xinntao/Real-ESRGAN/v0.2.5.0/LICENSE
+          chmod +x "$U/realesrgan-ncnn-vulkan"
+          ls -la "$U" "$U/models"
+          cat > "$RUNNER_TEMP/upscaler.entitlements" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>com.apple.security.app-sandbox</key><true/>
+          <key>com.apple.security.inherit</key><true/>
+          </dict></plist>
+          PLIST
+          sed -i '' 's/^          //' "$RUNNER_TEMP/upscaler.entitlements"
       - name: Build
         run: |
           set -o pipefail
@@ -83,6 +104,8 @@ jobs:
           else
             codesign -f -s "$W4_IDENTITY" "$APP/Contents/MacOS/wpe-shaderc"
           fi
+          ditto "$RUNNER_TEMP/upscaler" "$APP/Contents/Resources/Upscaler"
+          codesign -f -s "$W4_IDENTITY" --entitlements "$RUNNER_TEMP/upscaler.entitlements" "$APP/Contents/Resources/Upscaler/realesrgan-ncnn-vulkan"
           codesign -d --entitlements :- "$APP" > "$RUNNER_TEMP/app.entitlements" 2>/dev/null
           codesign -f -s "$W4_IDENTITY" --entitlements "$RUNNER_TEMP/app.entitlements" "$APP"
           codesign -d -r- "$APP" 2>&1 | tail -2

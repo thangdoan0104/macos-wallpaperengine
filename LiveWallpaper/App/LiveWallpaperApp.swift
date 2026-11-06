@@ -238,6 +238,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         WallpaperCapturePolicy.allowsScreenCapture =
             SettingsManager.shared.loadGlobalSettings().wallpaperVisibleInScreenCapture
         W4AlwaysRun.applyOnce()
+        #if !LITE_BUILD
+        W4FontLoader.registerBundledFonts()
+        #endif
         let manager = ScreenManager(startupOptions: startupPlan.screenManagerOptions)
         #if !MAS_BUILD
         W4LyricController.shared.start()
@@ -681,12 +684,20 @@ struct LiveWallpaperApp: App {
     @AppStorage(AppLanguagePreference.storageKey, store: .appScoped())
     private var appLanguageRawValue = AppLanguagePreference.system.rawValue
 
+    private func w4MenuBarIcon(_ symbol: String) -> Image {
+        #if !LITE_BUILD
+        Image(nsImage: W4MenuBarMark.image)
+        #else
+        Image(systemName: symbol)
+        #endif
+    }
+
     var body: some Scene {
         MenuBarExtra {
             menuBarBody
         } label: {
             let status = menuBarStatus
-            Image(systemName: status.symbol)
+            w4MenuBarIcon(status.symbol)
                 .accessibilityLabel(Text(verbatim: "\(BundleIdentity.productDisplayName), \(status.title)"))
                 .help(Text(verbatim: status.title))
         }
