@@ -22,12 +22,16 @@ enum W4FolderMemory {
     }
 
     nonisolated(unsafe) private static var skipped: [String] = []
+    nonisolated(unsafe) private static var loggedSkips: Set<String> = []
 
     /// A project the import passed over, named by the title in its project.json.
     static func noteSkipped(folder: URL, reason: String) {
         let name = title(of: folder)
         skipped.append("\(name): \(reason)")
-        Logger.warning("Import skipped \(name) in \(folder.path(percentEncoded: false)): \(reason)", category: .workshop)
+        // The scan repeats every minute while an item can't be read; once per launch is enough for the log.
+        if loggedSkips.insert("\(name)|\(reason)").inserted {
+            Logger.warning("Import skipped \(name) in \(folder.path(percentEncoded: false)): \(reason)", category: .workshop)
+        }
     }
 
     nonisolated(unsafe) private static var presets: [String] = []

@@ -381,7 +381,7 @@ final class WorkshopFolderImportCoordinator {
         report.presets = notes.presets
         report.deletedIDs = deletedOnDisk
         report.finishedAt = Date()
-        Logger.info("Library scan: \(report.foldersOnDisk) folders, \(withProject) with project.json, \(alreadyHeld) held, \(added) added, \(notes.skipped.count) skipped, \(notes.presets.count) presets, \(deletedOnDisk.count) deleted, access \(report.hasAccess)", category: .workshop)
+        Logger.notice("Library scan: \(report.foldersOnDisk) folders, \(withProject) with project.json, \(alreadyHeld) held, \(added) added, \(notes.skipped.count) skipped, \(notes.presets.count) presets, \(deletedOnDisk.count) deleted, access \(report.hasAccess)", category: .workshop)
         let newSkips = report.unannounced(notes.skipped)
         if !newSkips.isEmpty {
             toastCenter.post(

@@ -66,18 +66,12 @@ final class W4DesktopPictureSync {
         }
     }
 
-    private static let installOptions: [NSWorkspace.DesktopImageOptionKey: Any] = [
-        .imageScaling: NSNumber(value: NSImageScaling.scaleProportionallyUpOrDown.rawValue),
-        .allowClipping: true,
-        .fillColor: NSColor.black,
-    ]
-
     private func reinstallForActiveSpace() {
         for (id, url) in installed {
             guard let target = nsScreen(for: id),
                   NSWorkspace.shared.desktopImageURL(for: target) != url,
                   FileManager.default.fileExists(atPath: url.path) else { continue }
-            try? NSWorkspace.shared.setDesktopImageURL(url, for: target, options: Self.installOptions)
+            try? NSWorkspace.shared.setDesktopImageURL(url, for: target, options: [:])
         }
     }
 
@@ -86,7 +80,7 @@ final class W4DesktopPictureSync {
         guard lastBlock[id] != reason else { return }
         lastBlock[id] = reason
         if let reason {
-            Logger.info("Desktop sync waits on screen \(id): \(reason)", category: .screenManager)
+            Logger.notice("Desktop sync waits on screen \(id): \(reason)", category: .screenManager)
         }
     }
 
@@ -126,7 +120,7 @@ final class W4DesktopPictureSync {
             if state.target != target {
                 let pendingSince = state.captures == 0 ? state.pendingSince : now
                 state = ScreenState(target: target, pendingSince: pendingSince)
-                Logger.info("Desktop sync: new wallpaper on screen \(id)", category: .screenManager)
+                Logger.notice("Desktop sync: new wallpaper on screen \(id)", category: .screenManager)
             }
             states[id] = state
             if let since = inFlightSince[id] {
@@ -157,12 +151,12 @@ final class W4DesktopPictureSync {
             if inFlightSince[id] == startedAt { inFlightSince[id] = nil }
         }
         guard let image = await WallpaperCoverCapture.wallpaperFrame(screen: screen, configuration: configuration) else {
-            Logger.info("Desktop sync: no frame from screen \(id)", category: .screenManager)
+            Logger.notice("Desktop sync: no frame from screen \(id)", category: .screenManager)
             return
         }
         guard let session = screen.runtimeSession, ObjectIdentifier(session as AnyObject) == sessionID,
               manager?.wallpaperLoads.attempt(for: screen) == nil else {
-            Logger.info("Desktop sync: wallpaper on screen \(id) changed during capture", category: .screenManager)
+            Logger.notice("Desktop sync: wallpaper on screen \(id) changed during capture", category: .screenManager)
             return
         }
         guard let target = nsScreen(for: id),
@@ -176,11 +170,11 @@ final class W4DesktopPictureSync {
             screenID: id,
             nsScreen: target,
             install: { url, screen in
-                try NSWorkspace.shared.setDesktopImageURL(url, for: screen, options: Self.installOptions)
+                try NSWorkspace.shared.setDesktopImageURL(url, for: screen, options: [:])
                 installedURL = url
             }
         )
-        Logger.info("Desktop sync: screen \(id) outcome \(outcome), macOS reports match \(NSWorkspace.shared.desktopImageURL(for: target) == installedURL)", category: .screenManager)
+        Logger.notice("Desktop sync: screen \(id) outcome \(outcome), macOS reports match \(NSWorkspace.shared.desktopImageURL(for: target) == installedURL)", category: .screenManager)
         guard outcome == .captured else { return }
         installed[id] = installedURL
         states[id]?.captures += 1
