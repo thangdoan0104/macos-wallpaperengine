@@ -33,6 +33,9 @@ final class W4DesktopPictureSync {
         var lastAttemptAt: Date?
     }
 
+    private static let nudgeAlpha: CGFloat = 0.99
+    private static let nudgeDuration: TimeInterval = 3
+
     /// A capture is forced after this long, even if the target hasn't held still.
     private static let pendingLimit: TimeInterval = 5
 
@@ -178,6 +181,21 @@ final class W4DesktopPictureSync {
         guard outcome == .captured else { return }
         installed[id] = installedURL
         states[id]?.captures += 1
+        nudgeSystemWallpaper(under: screen.activeWallpaperWindow, screenID: id)
+    }
+
+    /// macOS accepts the new picture but appears to hold back redrawing a desktop that an opaque window fully covers,
+    /// and the menu bar blurs what is actually drawn. Slightly translucent, the wallpaper window stops counting as covering it.
+    private func nudgeSystemWallpaper(under window: NSWindow?, screenID: CGDirectDisplayID) {
+        guard let window, window.alphaValue == 1 else {
+            Logger.notice("Desktop sync: nudge skipped on screen \(screenID), alpha \(window?.alphaValue ?? -1)", category: .screenManager)
+            return
+        }
+        window.alphaValue = Self.nudgeAlpha
+        Task { [weak window] in
+            try? await Task.sleep(for: .seconds(Self.nudgeDuration))
+            if let window, window.alphaValue == Self.nudgeAlpha { window.alphaValue = 1 }
+        }
     }
 
     /// The picture at the display's own pixels, so macOS has nothing left to crop differently from the wallpaper window.
