@@ -25,6 +25,12 @@ Packages/LiveWallpaperProWPE/Sources/CWPESDF/vendor/msdfgen/LICENSE.txt msdfgen-
 ThirdPartyNotices/README.txt README.txt
 EOF
 
+# w4 builds in hosted CI without the private SDK inputs; the workflow embeds the official toolchain afterwards.
+if [ "${W4_SKIP_SHADER_EMBED:-}" = 1 ]; then
+    echo 'note: shader toolchain embedding skipped, the w4 workflow adds it after the build'
+    exit 0
+fi
+
 # Xcode does not pass the shell environment; fall back to the inputs staged in this checkout.
 if [ -z "${WPE_SHADER_TOOLCHAIN_ROOT:-}" ] && [ -d "$REPO_ROOT/build/wpe-shader-toolchain-inputs" ]; then
     WPE_SHADER_TOOLCHAIN_ROOT="$REPO_ROOT/build/wpe-shader-toolchain-inputs"

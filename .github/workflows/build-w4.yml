@@ -32,6 +32,8 @@ jobs:
           cp "$OFFICIAL/Contents/MacOS/wpe-shaderc" "$OFFICIAL/Contents/Frameworks/libdxcompiler.dylib" "$OFFICIAL/Contents/Frameworks/libmetalirconverter.dylib" "$RUNNER_TEMP/helper/"
           codesign -d --entitlements :- "$OFFICIAL/Contents/MacOS/wpe-shaderc" > "$RUNNER_TEMP/helper.entitlements" 2>/dev/null || true
           cat "$RUNNER_TEMP/helper.entitlements"
+          NOTICES="$OFFICIAL/Contents/Resources/ThirdPartyNotices"
+          [ -d "$NOTICES" ] && cp -R "$NOTICES" "$RUNNER_TEMP/helper/notices" || find "$OFFICIAL/Contents/Resources" -maxdepth 2 -iname '*notice*'
           (cd "$OFFICIAL" && find Contents -maxdepth 3 -not -path '*/Resources/*' | sort) > official-tree.txt
           hdiutil detach "$RUNNER_TEMP/official"
       - name: Build
@@ -40,7 +42,7 @@ jobs:
           xcodebuild build -project LiveWallpaper.xcodeproj -scheme LiveWallpaper -configuration Release \
             -destination 'platform=macOS,arch=arm64' -derivedDataPath "$RUNNER_TEMP/dd" \
             ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
-            PROVISIONING_PROFILE_SPECIFIER= ENABLE_HARDENED_RUNTIME=NO SWIFT_EMIT_LOC_STRINGS=NO \
+            PROVISIONING_PROFILE_SPECIFIER= ENABLE_HARDENED_RUNTIME=NO SWIFT_EMIT_LOC_STRINGS=NO W4_SKIP_SHADER_EMBED=1 \
             > build.log 2>&1 || { grep -nE 'error:|BUILD FAILED' build.log | head -80; tail -40 build.log; exit 1; }
           tail -3 build.log
       - name: Package
@@ -51,6 +53,7 @@ jobs:
           mkdir -p "$APP/Contents/Frameworks"
           cp "$H/libdxcompiler.dylib" "$H/libmetalirconverter.dylib" "$APP/Contents/Frameworks/"
           cp "$H/wpe-shaderc" "$APP/Contents/MacOS/"
+          [ -d "$H/notices" ] && ditto "$H/notices" "$APP/Contents/Resources/ThirdPartyNotices"
           codesign -f -s - "$APP/Contents/Frameworks/libdxcompiler.dylib" "$APP/Contents/Frameworks/libmetalirconverter.dylib"
           if [ -s "$RUNNER_TEMP/helper.entitlements" ]; then
             codesign -f -s - --entitlements "$RUNNER_TEMP/helper.entitlements" "$APP/Contents/MacOS/wpe-shaderc"
