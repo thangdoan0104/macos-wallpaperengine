@@ -200,8 +200,8 @@ final class WorkshopSetupController {
         // Homebrew's cask lives under a dot-directory on newer versions.
         panel.showsHiddenFiles = true
         panel.directoryURL = URL(fileURLWithPath: "/opt/homebrew/Caskroom", isDirectory: true)
-        panel.message = String(localized: "Choose the steamcmd binary, or the steamcmd.sh that launches it.", bundle: .appLanguage, comment: "Open-panel message when pointing Loomscreen at an existing SteamCMD.")
-        panel.prompt = String(localized: "Use SteamCMD", bundle: .appLanguage, comment: "Open-panel confirm button when pointing Loomscreen at an existing SteamCMD.")
+        panel.message = String(localized: "Choose the steamcmd binary, or the steamcmd.sh that launches it.", bundle: .appLanguage, comment: "Open-panel message when pointing w4llpapr at an existing SteamCMD.")
+        panel.prompt = String(localized: "Use SteamCMD", bundle: .appLanguage, comment: "Open-panel confirm button when pointing w4llpapr at an existing SteamCMD.")
         guard panel.runModal() == .OK, let url = panel.url else { return false }
 
         beginSetupAction()
@@ -255,7 +255,7 @@ final class WorkshopSetupController {
                 return
             case .connectorUnavailable:
                 setupError = String(
-                    localized: "Loomscreen's Steam connector did not respond.",
+                    localized: "w4llpapr's Steam connector did not respond.",
                     bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached."
                 )
                 return
@@ -263,7 +263,7 @@ final class WorkshopSetupController {
                 // Don't unbind here: the files still work, and `forget()` keeps the install record
                 // on failure so Remove stays retryable.
                 setupError = String(
-                    localized: "Couldn't remove the SteamCMD copy Loomscreen installed.",
+                    localized: "Couldn't remove the SteamCMD copy w4llpapr installed.",
                     bundle: .appLanguage, comment: "Workshop setup error when removing a managed SteamCMD install fails."
                 )
                 return

@@ -45,7 +45,7 @@ enum L10n {
         static var settingsTitle: String {
             String(
                 localized: "window.title.settings",
-                defaultValue: "Loomscreen",
+                defaultValue: "w4llpapr",
                 bundle: .appLanguage, comment: "Title of the management window."
             )
         }

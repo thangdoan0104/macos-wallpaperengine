@@ -238,6 +238,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         WallpaperCapturePolicy.allowsScreenCapture =
             SettingsManager.shared.loadGlobalSettings().wallpaperVisibleInScreenCapture
         let manager = ScreenManager(startupOptions: startupPlan.screenManagerOptions)
+        #if !MAS_BUILD
+        W4LyricController.shared.start()
+        #endif
         screenManager = manager
         #if !MAS_BUILD
         if !runtimeOptions.isTesting, #available(macOS 26.0, *) {

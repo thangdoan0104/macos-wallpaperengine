@@ -108,7 +108,7 @@ extension SteamCMDDoctorService {
         guard await SteamConnectorClient.locateSteamCMDBinary() != nil else {
             setProbe(.connector, status: .red(
                 message: String(
-                    localized: "Loomscreen's background Steam helper didn't answer. Downloads won't run until it does — quitting and reopening Loomscreen usually starts it.",
+                    localized: "w4llpapr's background Steam helper didn't answer. Downloads won't run until it does — quitting and reopening w4llpapr usually starts it.",
                     bundle: .appLanguage, comment: "Connector diagnostic when the XPC service is unreachable."
                 ),
                 command: nil

@@ -159,7 +159,7 @@ struct ReportBugSheet: View {
 
             let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
                 ?? FileManager.default.temporaryDirectory
-            let destination = caches.appendingPathComponent("Loomscreen-log-sanitized.txt")
+            let destination = caches.appendingPathComponent("w4llpapr-log-sanitized.txt")
             do {
                 try scrubbed.write(to: destination, atomically: true, encoding: .utf8)
                 return destination

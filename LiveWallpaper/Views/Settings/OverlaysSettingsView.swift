@@ -18,6 +18,10 @@ struct OverlaysSettingsView: View {
 
     var body: some View {
         Form {
+            #if !MAS_BUILD
+            W4LyricSettingsSection()
+            #endif
+
             Section {
                 widgetTintRow
                 widgetOpacityRow

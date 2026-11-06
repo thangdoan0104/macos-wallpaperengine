@@ -132,7 +132,7 @@ final class WPEImportCoordinator {
     func importProject(at folderURL: URL, for screen: Screen, onCommit: @MainActor @escaping () -> Void = {}) async -> ApplyOutcome {
         guard isLifecycleActive(), !tracker.isTerminated else {
             return .rejected(reason: String(
-                localized: "Loomscreen is quitting.",
+                localized: "w4llpapr is quitting.",
                 bundle: .appLanguage, comment: "Scene import refused because the app is shutting down."
             ))
         }

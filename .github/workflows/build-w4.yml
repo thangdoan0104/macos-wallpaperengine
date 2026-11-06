@@ -22,6 +22,29 @@ jobs:
           xcodebuild -version
           sw_vers
           xcodebuild SWIFT_EMIT_LOC_STRINGS=NO -downloadComponent MetalToolchain
+      - name: Signing identity
+        env:
+          P12: ${{ secrets.W4_SIGN_P12 }}
+          PW: ${{ secrets.W4_SIGN_PW }}
+        run: |
+          if [ -z "$P12" ] || [ -z "$PW" ]; then
+            echo "W4_IDENTITY=-" >> "$GITHUB_ENV"
+            echo "::warning::Không có chứng chỉ, dùng chữ ký tạm"
+            exit 0
+          fi
+          KC="$RUNNER_TEMP/w4.keychain-db"
+          security create-keychain -p w4 "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p w4 "$KC"
+          echo "$P12" | base64 -d > "$RUNNER_TEMP/w4.p12"
+          security import "$RUNNER_TEMP/w4.p12" -k "$KC" -P "$PW" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k w4 "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security find-certificate -c "w4llpapr Local Signing" -p "$KC" > "$RUNNER_TEMP/w4.pem"
+          sudo security add-trusted-cert -d -r trustRoot -p codeSign -k /Library/Keychains/System.keychain "$RUNNER_TEMP/w4.pem"
+          ID=$(openssl x509 -in "$RUNNER_TEMP/w4.pem" -noout -fingerprint -sha1 | cut -d= -f2 | tr -d ':')
+          echo "W4_IDENTITY=$ID" >> "$GITHUB_ENV"
+          security find-identity -v -p codesigning "$KC"
       - name: Official shader helper
         run: |
           curl -fsSL -o official.dmg "$OFFICIAL_DMG"
@@ -41,7 +64,7 @@ jobs:
           set -o pipefail
           xcodebuild build -project LiveWallpaper.xcodeproj -scheme LiveWallpaper -configuration Release \
             -destination 'platform=macOS,arch=arm64' -derivedDataPath "$RUNNER_TEMP/dd" \
-            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGN_IDENTITY="$W4_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
             PROVISIONING_PROFILE_SPECIFIER= ENABLE_HARDENED_RUNTIME=NO SWIFT_EMIT_LOC_STRINGS=NO W4_SKIP_SHADER_EMBED=1 \
             > build.log 2>&1 || { grep -nE 'error:|BUILD FAILED' build.log | head -80; tail -40 build.log; exit 1; }
           tail -3 build.log
@@ -54,23 +77,24 @@ jobs:
           cp "$H/libdxcompiler.dylib" "$H/libmetalirconverter.dylib" "$APP/Contents/Frameworks/"
           cp "$H/wpe-shaderc" "$APP/Contents/MacOS/"
           ditto "$H/notices" "$APP/Contents/Resources/WPEShaderCompilerNotices"
-          codesign -f -s - "$APP/Contents/Frameworks/libdxcompiler.dylib" "$APP/Contents/Frameworks/libmetalirconverter.dylib"
+          codesign -f -s "$W4_IDENTITY" "$APP/Contents/Frameworks/libdxcompiler.dylib" "$APP/Contents/Frameworks/libmetalirconverter.dylib"
           if [ -s "$RUNNER_TEMP/helper.entitlements" ]; then
-            codesign -f -s - --entitlements "$RUNNER_TEMP/helper.entitlements" "$APP/Contents/MacOS/wpe-shaderc"
+            codesign -f -s "$W4_IDENTITY" --entitlements "$RUNNER_TEMP/helper.entitlements" "$APP/Contents/MacOS/wpe-shaderc"
           else
-            codesign -f -s - "$APP/Contents/MacOS/wpe-shaderc"
+            codesign -f -s "$W4_IDENTITY" "$APP/Contents/MacOS/wpe-shaderc"
           fi
           codesign -d --entitlements :- "$APP" > "$RUNNER_TEMP/app.entitlements" 2>/dev/null
-          codesign -f -s - --entitlements "$RUNNER_TEMP/app.entitlements" "$APP"
+          codesign -f -s "$W4_IDENTITY" --entitlements "$RUNNER_TEMP/app.entitlements" "$APP"
+          codesign -d -r- "$APP" 2>&1 | tail -2
           codesign --verify --deep --strict --verbose=2 "$APP" 2>&1 | tail -5 || true
           (cd "$APP" && find Contents -maxdepth 3 -not -path '*/Resources/*' | sort) > built-tree.txt
           diff official-tree.txt built-tree.txt || true
-          ditto -c -k --sequesterRsrc --keepParent "$APP" w4-engine.zip
-          shasum -a 256 w4-engine.zip
-          ls -la w4-engine.zip
+          ditto -c -k --sequesterRsrc --keepParent "$APP" w4llpapr.zip
+          shasum -a 256 w4llpapr.zip
+          ls -la w4llpapr.zip
       - name: Publish draft
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="build-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" w4-engine.zip official-tree.txt built-tree.txt --draft --target "$GITHUB_SHA" --title "$TAG" --notes "Bản build thử."
+          gh release create "$TAG" w4llpapr.zip official-tree.txt built-tree.txt --draft --target "$GITHUB_SHA" --title "$TAG" --notes "Bản build thử."

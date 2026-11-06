@@ -22,7 +22,7 @@ extension SteamCMDFailureCode {
             )
         case .refusesOwnContainer:
             return String(
-                localized: "Loomscreen won't run a SteamCMD from inside its own container.",
+                localized: "w4llpapr won't run a SteamCMD from inside its own container.",
                 bundle: .appLanguage, comment: "Workshop setup error when the chosen SteamCMD sits in the app's own container."
             )
         case .signatureNotValve:

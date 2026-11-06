@@ -4,7 +4,7 @@ import LiveWallpaperCore
 
 extension SteamCMDDoctorService {
     static var setupRequiredMessage: String {
-        String(localized: "SteamCMD was found but needs setup on this Mac. Loomscreen can download and prepare a verified copy automatically.", bundle: .appLanguage, comment: "Recovery after Locate automatically finds a SteamCMD copy that cannot be used.")
+        String(localized: "SteamCMD was found but needs setup on this Mac. w4llpapr can download and prepare a verified copy automatically.", bundle: .appLanguage, comment: "Recovery after Locate automatically finds a SteamCMD copy that cannot be used.")
     }
 
     /// Unbound means no launch was accepted; discovery can still have verified

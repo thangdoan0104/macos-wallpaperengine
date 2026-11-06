@@ -489,13 +489,13 @@ struct StatusCapsule: View {
             return Text("System CPU, memory and heat are normal. No action needed.")
         case let .lowMemory(appBytes):
             let app = FormatUtils.formatBytes(appBytes)
-            return Text("The Mac is low on memory; Loomscreen uses \(app). Quitting apps you are not using frees memory.")
+            return Text("The Mac is low on memory; w4llpapr uses \(app). Quitting apps you are not using frees memory.")
         case let .systemCPU(percent, appPercent, suggestsAction):
             let busy = percentText(percent)
             let app = percentText(appPercent)
             return suggestsAction
-                ? Text("System CPU is \(busy) busy; Loomscreen uses \(app). If the Mac slows down, quit apps you are not using.")
-                : Text("System CPU is \(busy) busy; Loomscreen uses \(app). No action needed.")
+                ? Text("System CPU is \(busy) busy; w4llpapr uses \(app). If the Mac slows down, quit apps you are not using.")
+                : Text("System CPU is \(busy) busy; w4llpapr uses \(app). No action needed.")
         case .heat(.fair):
             return Text("The Mac is running warm. No action needed.")
         case .heat(.serious):

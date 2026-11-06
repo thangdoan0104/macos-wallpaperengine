@@ -416,7 +416,7 @@ final class WorkshopDownloadCoordinator {
         case let .notConfigured(reason):
             finish(itemID: itemID, title: title, phase: .failed(reason))
         case .loginRequired:
-            finish(itemID: itemID, title: title, phase: .failed(String(localized: "Loomscreen's Steam download session isn't connected. Connect your account in Settings → Workshop, then try again.", bundle: .appLanguage, comment: "Steam download blocked because Loomscreen's own Steam session is not signed in; shared by engine-assets and Workshop item downloads.")))
+            finish(itemID: itemID, title: title, phase: .failed(String(localized: "w4llpapr's Steam download session isn't connected. Connect your account in Settings → Workshop, then try again.", bundle: .appLanguage, comment: "Steam download blocked because w4llpapr's own Steam session is not signed in; shared by engine-assets and Workshop item downloads.")))
         case .untrustedBinary:
             finish(itemID: itemID, title: title, phase: .failed(String(localized: "SteamCMD isn't a verified Valve build, so the download was blocked. Re-select the official SteamCMD in the Doctor.", bundle: .appLanguage, comment: "Workshop download blocked: unverified SteamCMD binary.")))
         case .steamUnreachable:

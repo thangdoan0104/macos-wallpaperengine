@@ -28,9 +28,9 @@ struct SystemWallpaperAddSheet: View {
 
     private var subtitle: LocalizedStringKey {
         #if LITE_BUILD
-        "macOS saves a video copy that can play with Loomscreen closed."
+        "macOS saves a video copy that can play with w4llpapr closed."
         #else
-        "Videos and live scenes can play with Loomscreen closed. Web wallpapers are recorded as video copies."
+        "Videos and live scenes can play with w4llpapr closed. Web wallpapers are recorded as video copies."
         #endif
     }
 

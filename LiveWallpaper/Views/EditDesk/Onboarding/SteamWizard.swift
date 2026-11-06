@@ -51,7 +51,7 @@ struct SteamWizard: View {
                         .help(Text("Close"))
                         .accessibilityLabel(Text("Close"))
                 }
-                Text("Loomscreen downloads through SteamCMD, never through a third-party server. You need to own Wallpaper Engine.")
+                Text("w4llpapr downloads through SteamCMD, never through a third-party server. You need to own Wallpaper Engine.")
                     .font(DesignTokens.EditDesk.Typography.body)
                     .foregroundStyle(DesignTokens.EditDesk.Colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)

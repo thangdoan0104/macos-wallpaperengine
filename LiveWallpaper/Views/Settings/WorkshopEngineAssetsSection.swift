@@ -174,7 +174,7 @@ struct WorkshopEngineAssetsSection: View {
                     Button("Unlink", role: .destructive) { engineInstaller.remove() }
                     Button("Cancel", role: .cancel) {}
                 } message: {
-                    Text("Loomscreen will stop using these Wallpaper Engine assets. Files in your Steam library will be kept. Scene wallpapers may have missing textures or effects until assets are linked again.")
+                    Text("w4llpapr will stop using these Wallpaper Engine assets. Files in your Steam library will be kept. Scene wallpapers may have missing textures or effects until assets are linked again.")
                 }
         }
     }

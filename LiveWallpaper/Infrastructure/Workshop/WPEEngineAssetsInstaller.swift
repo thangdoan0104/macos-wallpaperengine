@@ -40,7 +40,7 @@ final class WPEEngineAssetsInstaller {
                 switch self {
                 case .notRun:
                     String(
-                        localized: "Loomscreen's Steam connector did not respond.",
+                        localized: "w4llpapr's Steam connector did not respond.",
                         bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached."
                     )
                 case .timedOut:
@@ -234,7 +234,7 @@ final class WPEEngineAssetsInstaller {
 
         guard let result else {
             fail(String(
-                localized: "Loomscreen's Steam connector did not respond.",
+                localized: "w4llpapr's Steam connector did not respond.",
                 bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached."
             ))
             return
@@ -246,7 +246,7 @@ final class WPEEngineAssetsInstaller {
             await adoptInstall(result, doctor: doctor, attempt: attempt)
         case .loginRequired:
             doctor.noteOperationReportedLoginRequired(generation: generation)
-            fail(String(localized: "Loomscreen's Steam download session isn't connected. Connect your account in Settings → Workshop, then try again.", bundle: .appLanguage, comment: "Steam download blocked because Loomscreen's own Steam session is not signed in; shared by engine-assets and Workshop item downloads."))
+            fail(String(localized: "w4llpapr's Steam download session isn't connected. Connect your account in Settings → Workshop, then try again.", bundle: .appLanguage, comment: "Steam download blocked because w4llpapr's own Steam session is not signed in; shared by engine-assets and Workshop item downloads."))
         case .notEntitled:
             fail(String(localized: "This Steam account doesn't own Wallpaper Engine, so its assets can't be downloaded.", bundle: .appLanguage, comment: "Engine-assets download blocked: account doesn't own Wallpaper Engine."))
         case .pruneRefused:
@@ -323,7 +323,7 @@ final class WPEEngineAssetsInstaller {
             $0.isEmpty || $0 == WPEEngineAssetsLibrary.unknownManagedBuildMarker ? nil : $0
         }
         guard WPEEngineAssetsLibrary.adoptManagedInstall(at: installRoot, buildID: buildID) else {
-            fail(String(localized: "Installed Wallpaper Engine, but Loomscreen could not keep access to it.", bundle: .appLanguage, comment: "Engine-assets install succeeded but the bookmark could not be created."))
+            fail(String(localized: "Installed Wallpaper Engine, but w4llpapr could not keep access to it.", bundle: .appLanguage, comment: "Engine-assets install succeeded but the bookmark could not be created."))
             return
         }
         hasManagedInstall = true

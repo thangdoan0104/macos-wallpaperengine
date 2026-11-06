@@ -177,7 +177,7 @@ extension WPECacheManagementView {
                     Text("Memory Caches").font(DesignTokens.Typography.caption).foregroundStyle(DesignTokens.Colors.textSecondary)
                         .settingsSearchRow("Memory Caches")
                     StorageInfoButton {
-                        infoNote("Decoded images, library thumbnails, scene textures, animation frames, compiled Metal pipelines and recent query results live in memory. They do not count toward disk storage and are released by their owners or when Loomscreen quits.")
+                        infoNote("Decoded images, library thumbnails, scene textures, animation frames, compiled Metal pipelines and recent query results live in memory. They do not count toward disk storage and are released by their owners or when w4llpapr quits.")
                     }
                     if isClearing {
                         ProgressView().controlSize(.small)

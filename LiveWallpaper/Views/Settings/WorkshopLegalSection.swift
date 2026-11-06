@@ -22,12 +22,12 @@ enum WorkshopLegalContent {
         Point(
             id: "files",
             title: "File access",
-            body: "Loomscreen never asks for Full Disk Access. Library access comes from one folder you pick, stored as a security-scoped bookmark."
+            body: "w4llpapr never asks for Full Disk Access. Library access comes from one folder you pick, stored as a security-scoped bookmark."
         ),
         Point(
             id: "signIn",
             title: "Steam sign-in",
-            body: "Your Steam password and Steam Guard codes go to SteamCMD only. Loomscreen never stores them, and never sends them anywhere else."
+            body: "Your Steam password and Steam Guard codes go to SteamCMD only. w4llpapr never stores them, and never sends them anywhere else."
         ),
         Point(
             id: "apiKey",
@@ -37,12 +37,12 @@ enum WorkshopLegalContent {
         Point(
             id: "requests",
             title: "Where requests go",
-            body: "Workshop requests go straight to Valve over HTTPS. Nothing is sent to Loomscreen, and Loomscreen runs no server of its own."
+            body: "Workshop requests go straight to Valve over HTTPS. Nothing is sent to w4llpapr, and w4llpapr runs no server of its own."
         ),
         Point(
             id: "assets",
             title: "Wallpaper Engine assets",
-            body: "Scene resources are read only. Loomscreen never modifies a Wallpaper Engine install, and downloading one requires a Steam account that already owns it."
+            body: "Scene resources are read only. w4llpapr never modifies a Wallpaper Engine install, and downloading one requires a Steam account that already owns it."
         )
     ]
 

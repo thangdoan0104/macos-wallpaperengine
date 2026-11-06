@@ -49,7 +49,7 @@ struct SystemWallpaperMaintenanceSection: View {
                 icon: "bolt.shield",
                 iconColor: DesignTokens.Colors.SettingsIcon.automaticRecovery,
                 title: "Automatically recover stalled connections",
-                info: "Automatic recovery runs while Loomscreen is open, waits for persistent failure, and restarts at most once every five minutes."
+                info: "Automatic recovery runs while w4llpapr is open, waits for persistent failure, and restarts at most once every five minutes."
             ) {
                 Toggle("", isOn: Binding(
                     get: { maintenance.automaticRecovery }, set: { maintenance.automaticRecovery = $0 }
@@ -87,7 +87,7 @@ struct SystemWallpaperMaintenanceResult: View {
         case .verified:
             SystemWallpaperStatusLine("Extension connection verified", systemImage: "checkmark.circle.fill", tint: DesignTokens.Colors.Status.active)
         case .awaitingSelection:
-            SystemWallpaperStatusLine("The service restarted, but no new connection was confirmed. Choose the Loomscreen tile in System Settings › Wallpaper again.",
+            SystemWallpaperStatusLine("The service restarted, but no new connection was confirmed. Choose the w4llpapr tile in System Settings › Wallpaper again.",
                                       systemImage: "exclamationmark.triangle", tint: DesignTokens.Colors.Status.warning)
         case .failed:
             HStack {

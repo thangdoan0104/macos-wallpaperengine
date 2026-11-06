@@ -82,7 +82,7 @@ struct WorkshopConnectionSetup: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Removes this account's Loomscreen download session. Reconnect before downloading again. Steam app sign-in is unaffected.")
+            Text("Removes this account's w4llpapr download session. Reconnect before downloading again. Steam app sign-in is unaffected.")
         }
         .task { await controller.prepare() }
     }
@@ -173,7 +173,7 @@ struct WorkshopConnectionSetup: View {
         if controller.hasManagedInstall {
             routes.append(WorkshopSetupRoute(
                 id: "steamcmd.remove",
-                title: "Remove the copy Loomscreen installed",
+                title: "Remove the copy w4llpapr installed",
                 role: .destructive
             ) {
                 pendingDestructive = PendingDestructive(.removeManagedSteamCMD) {
@@ -193,7 +193,7 @@ struct WorkshopConnectionSetup: View {
             title: "Steam account",
             valueSubtitle: controller.accountDetail,
             titleBadge: attentionBadge(for: service.accountStepState),
-            info: "Downloads use your Steam account. Loomscreen does not store the password."
+            info: "Downloads use your Steam account. w4llpapr does not store the password."
         ) {
             accountControl
                 .fixedSize()

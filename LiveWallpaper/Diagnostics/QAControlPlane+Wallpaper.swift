@@ -225,7 +225,7 @@ extension QAControlPlane {
                     }
                 }))
                 #else
-                throw QAError.message("Scene span requires Loomscreen Pro")
+                throw QAError.message("Scene span requires w4llpapr")
                 #endif
             case "sceneMouseInteractionEnabled":
                 let enabled = try Self.boolean(value, key)

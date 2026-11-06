@@ -10,6 +10,6 @@ enum BundleIdentity {
            !name.isEmpty {
             return name
         }
-        return "Loomscreen Pro"
+        return "w4llpapr"
     }()
 }

@@ -47,7 +47,7 @@ enum DropFailure: Equatable {
         )
         #else
         String(
-            localized: "Wallpaper Engine projects need Loomscreen Pro, a separate free download.", bundle: .appLanguage,
+            localized: "Wallpaper Engine projects need w4llpapr, a separate free download.", bundle: .appLanguage,
             comment: "Shown in Lite when a Wallpaper Engine project folder is dropped or chosen. Both editions are free; Pro is a separate build, not a paid tier."
         )
         #endif

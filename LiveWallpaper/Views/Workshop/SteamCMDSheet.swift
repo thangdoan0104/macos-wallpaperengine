@@ -17,11 +17,11 @@ struct SteamCMDSetupSheet: View {
                 )
 
                 if isRecovery {
-                    Text("Loomscreen will download and prepare SteamCMD for this Mac. Your existing installation stays in place. No Terminal commands are needed.")
+                    Text("w4llpapr will download and prepare SteamCMD for this Mac. Your existing installation stays in place. No Terminal commands are needed.")
                         .font(DesignTokens.Typography.body)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Text("Loomscreen downloads SteamCMD directly from Valve, with native support for Apple Silicon. No Rosetta is needed.")
+                    Text("w4llpapr downloads SteamCMD directly from Valve, with native support for Apple Silicon. No Rosetta is needed.")
                         .font(DesignTokens.Typography.body)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -29,7 +29,7 @@ struct SteamCMDSetupSheet: View {
                 managedDetail
 
                 DisclosureGroup("Already installed with Homebrew?") {
-                    Text("Loomscreen can use existing Homebrew installations. On Apple Silicon, Homebrew's initial SteamCMD download requires Rosetta: manually run steamcmd +quit in Terminal to let SteamCMD update itself, then choose Locate automatically.")
+                    Text("w4llpapr can use existing Homebrew installations. On Apple Silicon, Homebrew's initial SteamCMD download requires Rosetta: manually run steamcmd +quit in Terminal to let SteamCMD update itself, then choose Locate automatically.")
                         .font(DesignTokens.Typography.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

@@ -398,7 +398,7 @@ extension View {
         } message: { _ in
             if deletesFiles {
                 Text(
-                    "Delete “\(title)” from this Mac’s Steam library and Loomscreen to free space. This cannot be undone; the wallpaper can be downloaded again. Steam subscriptions are unchanged."
+                    "Delete “\(title)” from this Mac’s Steam library and w4llpapr to free space. This cannot be undone; the wallpaper can be downloaded again. Steam subscriptions are unchanged."
                 )
             } else {
                 Text("Remove “\(title)” from Loomscreen. Original files are kept.")

@@ -82,7 +82,7 @@ enum SteamCMDDoctorError: Error, Equatable, Sendable, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .binaryResolution:
-            return String(localized: "Loomscreen couldn't use that file as SteamCMD.", bundle: .appLanguage, comment: "Workshop setup error when a manually chosen SteamCMD is refused.")
+            return String(localized: "w4llpapr couldn't use that file as SteamCMD.", bundle: .appLanguage, comment: "Workshop setup error when a manually chosen SteamCMD is refused.")
         case .bookmarkCreation(let reason):
             return String(localized: "Couldn't keep access to the chosen folder: \(reason)", bundle: .appLanguage, comment: "Workshop diagnostics error; %@ is the failure reason.")
         case .missingBinaryBinding:
@@ -98,13 +98,13 @@ enum SteamCMDDoctorError: Error, Equatable, Sendable, LocalizedError {
             return String(localized: "Steam Library must contain config/config.vdf: \(path)", bundle: .appLanguage, comment: "Workshop diagnostics error; %@ is the offending path.")
         case .steamLibraryInsideContainer(let url):
             let path = url.path(percentEncoded: false)
-            return String(localized: "That folder is inside Loomscreen's own sandbox container, not your Steam installation: \(path)", bundle: .appLanguage, comment: "Workshop diagnostics error when the picked Steam Library is the app's private container copy; %@ is the offending path.")
+            return String(localized: "That folder is inside w4llpapr's own sandbox container, not your Steam installation: \(path)", bundle: .appLanguage, comment: "Workshop diagnostics error when the picked Steam Library is the app's private container copy; %@ is the offending path.")
         case .untrustedBinary:
             return String(localized: "SteamCMD is not a verified Valve build.", bundle: .appLanguage, comment: "Workshop diagnostics error when the SteamCMD binary is not trusted.")
         case .connectorBusy:
-            return String(localized: "Loomscreen's Steam connector is busy with another SteamCMD task. Try again in a moment.", bundle: .appLanguage, comment: "Workshop setup error when binding SteamCMD while the connector is busy with another SteamCMD operation.")
+            return String(localized: "w4llpapr's Steam connector is busy with another SteamCMD task. Try again in a moment.", bundle: .appLanguage, comment: "Workshop setup error when binding SteamCMD while the connector is busy with another SteamCMD operation.")
         case .connectorUnavailable:
-            return String(localized: "Loomscreen's Steam connector did not respond.", bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached.")
+            return String(localized: "w4llpapr's Steam connector did not respond.", bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached.")
         }
     }
 }
@@ -710,15 +710,15 @@ final class SteamCMDDoctorService {
             guard let result, result.unavailableReason == nil else {
                 setProbe(.codeSignature, status: .yellow(
                     message: result?.unavailableReason == nil
-                        ? String(localized: "Loomscreen's Steam connector did not respond, so the signature wasn't checked.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message.")
-                        : String(localized: "Loomscreen's Steam connector was busy, so the signature wasn't checked. Try again.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message."),
+                        ? String(localized: "w4llpapr's Steam connector did not respond, so the signature wasn't checked.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message.")
+                        : String(localized: "w4llpapr's Steam connector was busy, so the signature wasn't checked. Try again.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message."),
                     command: nil
                 ))
                 return
             }
             guard result.exists else {
                 setProbe(.codeSignature, status: .red(
-                    message: String(localized: "SteamCMD is no longer where Loomscreen found it. Run Locate automatically again.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message."),
+                    message: String(localized: "SteamCMD is no longer where w4llpapr found it. Run Locate automatically again.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message."),
                     command: nil
                 ))
                 return
@@ -754,7 +754,7 @@ final class SteamCMDDoctorService {
             // Unavailable replies default isQuarantined=false — don't treat as clean.
             guard let quarantineCheck, quarantineCheck.unavailableReason == nil else {
                 setProbe(.gatekeeperQuarantine, status: .yellow(
-                    message: String(localized: "Loomscreen's Steam connector didn't answer, so the quarantine attribute wasn't checked. Try again.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message."),
+                    message: String(localized: "w4llpapr's Steam connector didn't answer, so the quarantine attribute wasn't checked. Try again.", bundle: .appLanguage, comment: "SteamCMD diagnostic (Doctor) probe label or result message."),
                     command: nil
                 ))
                 return
@@ -875,7 +875,7 @@ final class SteamCMDDoctorService {
         guard let result else {
             setProbe(.cachedLogin, status: .red(
                 message: String(
-                    localized: "Loomscreen's Steam connector did not respond.",
+                    localized: "w4llpapr's Steam connector did not respond.",
                     bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached."
                 ),
                 command: nil
@@ -918,7 +918,7 @@ final class SteamCMDDoctorService {
         case .noCachedSession:
             setProbe(.cachedLogin, status: .yellow(
                 message: String(
-                    localized: "Connect this account to Loomscreen once. Its download session is saved separately from the Steam app.",
+                    localized: "Connect this account to w4llpapr once. Its download session is saved separately from the Steam app.",
                     bundle: .appLanguage, comment: "SteamCMD private profile needs authentication; Steam client login is separate."
                 ),
                 command: signIn
@@ -926,7 +926,7 @@ final class SteamCMDDoctorService {
         case .sessionExpired:
             setProbe(.cachedLogin, status: .yellow(
                 message: String(
-                    localized: "Loomscreen's download session is unavailable. Reconnect this account; your Steam app sign-in is separate.",
+                    localized: "w4llpapr's download session is unavailable. Reconnect this account; your Steam app sign-in is separate.",
                     bundle: .appLanguage, comment: "SteamCMD download needs renewed private-profile authentication."
                 ),
                 command: signIn
@@ -1045,7 +1045,7 @@ final class SteamCMDDoctorService {
             )
         case .session:
             String(
-                localized: "Loomscreen's download session is unavailable. Reconnect this account; your Steam app sign-in is separate.",
+                localized: "w4llpapr's download session is unavailable. Reconnect this account; your Steam app sign-in is separate.",
                 bundle: .appLanguage, comment: "SteamCMD download needs renewed private-profile authentication."
             )
         }
@@ -1122,7 +1122,7 @@ final class SteamCMDDoctorService {
         )
         guard let result else {
             return .failed(reason: String(
-                localized: "Loomscreen's Steam connector did not respond.",
+                localized: "w4llpapr's Steam connector did not respond.",
                 bundle: .appLanguage, comment: "Steam sign-in diagnostic when the XPC connector could not be reached."
             ))
         }
@@ -1341,7 +1341,7 @@ final class SteamCMDDoctorService {
             return SteamCMDRunResult(
                 exitCode: nil,
                 stdout: "",
-                stderr: "Loomscreen's Steam connector did not respond.",
+                stderr: "w4llpapr's Steam connector did not respond.",
                 timedOut: false,
                 killed: true
             )
@@ -1578,7 +1578,7 @@ final class SteamCMDDoctorService {
         }
         setProbe(.cachedLogin, status: .yellow(
             message: String(
-                localized: "Loomscreen's download session is unavailable. Reconnect this account; your Steam app sign-in is separate.",
+                localized: "w4llpapr's download session is unavailable. Reconnect this account; your Steam app sign-in is separate.",
                 bundle: .appLanguage, comment: "SteamCMD download needs renewed private-profile authentication."
             ),
             command: signIn

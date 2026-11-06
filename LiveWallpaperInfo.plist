@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Loomscreen Pro</string>
+	<string>w4llpapr</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -74,11 +74,11 @@
 	    the General settings toggle writes Sparkle's own preference afterwards.
 	-->
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<false/>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://loomscreen-feed.snowy-moon-fa11.workers.dev/appcast-pro.xml</string>
+	<string>https://raw.githubusercontent.com/thangdoan0104/macos-wallpaperengine/w4/appcast-w4.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>V1TAiPupv91eQ9YlbHDBxPdztUhLrvG1TTJMYyArArs=</string>
 	<key>UTExportedTypeDeclarations</key>

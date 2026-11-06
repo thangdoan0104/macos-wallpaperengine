@@ -57,7 +57,7 @@ actor WorkshopQueryCache {
             create: true
         )) ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support", isDirectory: true)
         return applicationSupport
-            .appendingPathComponent("Loomscreen", isDirectory: true)
+            .appendingPathComponent("w4llpapr", isDirectory: true)
             .appendingPathComponent("WorkshopQueryCache", isDirectory: true)
     }
 

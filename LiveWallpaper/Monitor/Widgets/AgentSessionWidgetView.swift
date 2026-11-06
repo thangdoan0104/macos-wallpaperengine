@@ -669,7 +669,7 @@ private enum AgentSessionStrings {
     }
 
     static var authorizeHint: LocalizedStringKey {
-        "Authorize the Claude or Codex folder in Loomscreen: Overlays › Widgets › AI Session History Access."
+        "Authorize the Claude or Codex folder in w4llpapr: Overlays › Widgets › AI Session History Access."
     }
 
     static var runningKeyword: LocalizedStringKey {

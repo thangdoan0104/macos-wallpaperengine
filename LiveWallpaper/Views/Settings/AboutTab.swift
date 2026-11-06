@@ -151,7 +151,7 @@ extension GeneralSettingsView {
                 .font(DesignTokens.Typography.caption)
                 .foregroundStyle(.secondary)
 
-            Text(verbatim: "© 2026 Loomscreen contributors · MIT License")
+            Text(verbatim: "© 2026 w4llpapr contributors · MIT License")
                 .font(DesignTokens.Typography.caption)
                 .foregroundStyle(.tertiary)
         }

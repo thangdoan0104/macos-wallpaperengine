@@ -185,8 +185,8 @@ enum PageGuideContext: CaseIterable {
         [
             .init(.page, "Browse before connecting", "Use search, filters, sort and time range to find wallpapers. Click a result for details. A Steam Web API key is optional; its settings explain the extra information it enables.", settingsAnchor: .workshopSetup),
             .init(.steamMenu, "Connect or import locally", "Use the Steam menu to connect your account, sync subscriptions or add a link. Downloads need SteamCMD and ownership of Wallpaper Engine. Import a Local Folder works without signing in."),
-            .init(.steamMenu, "Install the download component", "Open Settings › Workshop › Steam connection and choose Set up SteamCMD. Loomscreen shows the download size and location before installing. Already installed it? Use Locate automatically or Choose SteamCMD.", settingsAnchor: .workshopConnection),
-            .init(.steamMenu, "Authorize your Steam library", "In Steam connection, choose or authorize your Steam library folder. This grants Loomscreen access to local Workshop files; it does not sign you in. Follow the folder picker's instructions, then check the library status.", settingsAnchor: .workshopConnection),
+            .init(.steamMenu, "Install the download component", "Open Settings › Workshop › Steam connection and choose Set up SteamCMD. w4llpapr shows the download size and location before installing. Already installed it? Use Locate automatically or Choose SteamCMD.", settingsAnchor: .workshopConnection),
+            .init(.steamMenu, "Authorize your Steam library", "In Steam connection, choose or authorize your Steam library folder. This grants w4llpapr access to local Workshop files; it does not sign you in. Follow the folder picker's instructions, then check the library status.", settingsAnchor: .workshopConnection),
             .init(.steamMenu, "Sign in and confirm Steam Guard", "Use the Steam account that owns Wallpaper Engine. Enter its account name and password, then approve Steam Guard on your phone or enter the requested email or authenticator code. Signing into the Steam app alone does not connect Loomscreen.", settingsAnchor: .workshopConnection),
             .init(.steamMenu, "API key is optional", "You can continue without a Steam Web API key. To add one, open Get a key in Workshop settings, sign in on Steam's official website, then paste your own key back here and wait for validation before saving. A key adds metadata and faster search; it does not replace SteamCMD sign-in.", settingsAnchor: .workshopSetup),
             .init(.steamMenu, "Prepare scene resources", "Before using scene wallpapers, set up shared Wallpaper Engine assets in Settings › Workshop › Scene resources. Download them with your connected Steam account or choose an existing assets folder. Missing assets can leave textures and effects absent even when a scene plays. Video wallpapers do not need these assets.", settingsAnchor: .workshopAssets),
@@ -247,7 +247,7 @@ enum PageGuideContext: CaseIterable {
         switch self {
         case .overview:
             [
-                .init(.page, "Welcome to Loomscreen", "Thanks for downloading Loomscreen! Loomscreen is a menu bar app. Closing this window keeps wallpapers running. Click its menu bar icon and choose Manage to return. Show in Dock in General settings also makes the app available in the Dock and Command-Tab."),
+                .init(.page, "Welcome to w4llpapr", "Thanks for downloading w4llpapr! w4llpapr is a menu bar app. Closing this window keeps wallpapers running. Click its menu bar icon and choose Manage to return. Show in Dock in General settings also makes the app available in the Dock and Command-Tab."),
                 .init(.navigation, "Find your way around", "Overview shows your displays. Wallpaper Library holds your sources; its Bookmarks filter shows the ones you marked. Schemes holds saved display setups. Settings contains app-wide preferences."),
                 .init(.display, "Choose a display", "Click a display to open its configuration and overlay layers. Drop a file onto a display to apply it only there. Point at a display to pause or resume it; while a playlist runs, Previous and Next also appear there and in the menu bar. Its context menu renames or reloads the display, applies its wallpaper to all displays, or clears it.", footnote: Self.importHint),
                 .init(.shelfHandle, "Open the wallpaper shelf", "Click Wallpaper Library at the bottom, or scroll upward, to reveal the shelf. Continue upward for the full library. You can also use the top navigation."),
@@ -265,7 +265,7 @@ enum PageGuideContext: CaseIterable {
             ]
         case .systemWallpaper:
             [
-                .init(.page, "Let macOS follow Loomscreen", "Prepare compatible wallpapers here, then choose the Loomscreen tile for each display in System Settings › Wallpaper. macOS can play the prepared content with Loomscreen closed. App effects, overlays and playback controls do not apply to system copies."),
+                .init(.page, "Let macOS follow w4llpapr", "Prepare compatible wallpapers here, then choose the w4llpapr tile for each display in System Settings › Wallpaper. macOS can play the prepared content with w4llpapr closed. App effects, overlays and playback controls do not apply to system copies."),
                 .init(.page, "Manage system copies", "The item menu reveals or removes the macOS copy. Removing a system copy is different from clearing a display's live wallpaper; review the confirmation before removing it."),
             ]
         case .workshop:
@@ -312,7 +312,7 @@ enum PageGuideContext: CaseIterable {
 
 struct PageGuideStep {
     static var completion: Self {
-        .init(.page, "Enjoy your wallpapers!", "You're all set. Thanks for using Loomscreen—enjoy your desktop! You can replay this tour anytime from Settings › About.")
+        .init(.page, "Enjoy your wallpapers!", "You're all set. Thanks for using w4llpapr—enjoy your desktop! You can replay this tour anytime from Settings › About.")
     }
 
     let target: PageGuideTarget

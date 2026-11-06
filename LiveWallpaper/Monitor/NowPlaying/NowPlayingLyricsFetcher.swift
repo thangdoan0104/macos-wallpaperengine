@@ -359,22 +359,54 @@ actor NowPlayingLyricsFetcher {
             if let lines = Self.lines(from: record) { return lines }
         }
 
-        guard let url = Self.searchURL(artist: state.artist, title: state.title),
-              let data = try await load(url),
-              let rows = try? JSONDecoder().decode([Candidate].self, from: data),
-              let best = Self.bestMatch(
-                  in: rows, artist: state.artist, title: state.title, album: state.album, duration: state.duration
-              ),
-              best.instrumental != true
-        else { return nil }
-        return Self.lines(from: best)
+        if let url = Self.searchURL(artist: state.artist, title: state.title),
+           let data = try await load(url),
+           let rows = try? JSONDecoder().decode([Candidate].self, from: data),
+           let best = Self.bestMatch(
+               in: rows, artist: state.artist, title: state.title, album: state.album, duration: state.duration
+           ),
+           best.instrumental != true,
+           let lines = Self.lines(from: best) {
+            return lines
+        }
+        return try await widerAttempt(state: state)
+    }
+
+    /// w4: titles in brackets and Traditional/Simplified spellings miss the exact search, so try the bare title too.
+    private func widerAttempt(state: MonitorNowPlayingState) async throws -> [LyricLine]? {
+        let core = W4LyricMatch.coreTitle(state.title)
+        let artist = W4LyricMatch.coreArtist(state.artist)
+        let simpleCore = W4LyricMatch.simplified(core)
+        let simpleArtist = W4LyricMatch.simplified(artist)
+        let titles = simpleCore == core ? [core] : [core, simpleCore]
+        let artists = simpleArtist == artist ? [artist] : [artist, simpleArtist]
+        var urls: [URL] = []
+        for title in titles {
+            for name in artists where !name.isEmpty {
+                if let url = Self.searchURL(artist: name, title: title) { urls.append(url) }
+            }
+            if let url = Self.searchURL(artist: nil, title: title) { urls.append(url) }
+        }
+        for url in urls {
+            guard let data = try await load(url),
+                  let rows = try? JSONDecoder().decode([Candidate].self, from: data) else { continue }
+            for row in rows where row.instrumental != true && row.syncedLyrics?.isEmpty == false {
+                let gap = abs((row.duration ?? state.duration ?? 0) - (state.duration ?? row.duration ?? 0))
+                if W4LyricMatch.isSameSong(candidateTitle: row.trackName ?? "", candidateArtist: row.artistName ?? "",
+                                           title: state.title, artist: state.artist, durationGap: gap),
+                   let lines = Self.lines(from: row) {
+                    return lines
+                }
+            }
+        }
+        return nil
     }
 
     /// Only timed lyrics are usable — `plainLyrics` carries no timeline, and the
     /// product ladder is word → line → nothing.
     private static func lines(from candidate: Candidate) -> [LyricLine]? {
         guard let synced = candidate.syncedLyrics, !synced.isEmpty else { return nil }
-        let lines = NowPlayingLyrics.parseLRC(synced)
+        let lines = W4LyricMatch.cleaned(NowPlayingLyrics.parseLRC(synced))
         return lines.isEmpty ? nil : lines
     }
 

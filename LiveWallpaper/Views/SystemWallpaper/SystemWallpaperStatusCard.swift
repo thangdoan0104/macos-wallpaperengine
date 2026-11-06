@@ -34,7 +34,7 @@ struct SystemWallpaperStatusCard: View {
             InlineNoticeBanner(
                 tint: DesignTokens.Colors.Status.warning,
                 symbol: "exclamationmark.triangle.fill",
-                title: Text("Another copy of Loomscreen provides the system wallpaper"),
+                title: Text("Another copy of w4llpapr provides the system wallpaper"),
                 message: Text("Quit the other copy, or remove its registration in Settings › System Wallpaper › Manage Extension Registrations."),
                 surface: .content
             ) {
@@ -44,7 +44,7 @@ struct SystemWallpaperStatusCard: View {
             GroupBox {
                 HStack(alignment: .top, spacing: DesignTokens.Spacing.lg) {
                     VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                        Text("Let macOS follow Loomscreen")
+                        Text("Let macOS follow w4llpapr")
                             .font(DesignTokens.Typography.bodyEmphasized)
                         Text("1. Open System Settings › Wallpaper.")
                         Text("2. Choose “\(SystemWallpaperStatusCard.tileName)” for each display.")
@@ -60,7 +60,7 @@ struct SystemWallpaperStatusCard: View {
             GroupBox {
                 HStack(spacing: DesignTokens.Spacing.lg) {
                     Label {
-                        Text("Following Loomscreen on \(displayCount) displays")
+                        Text("Following w4llpapr on \(displayCount) displays")
                     } icon: {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(DesignTokens.Colors.Status.active)
@@ -93,7 +93,7 @@ struct SystemWallpaperStatusCard: View {
 
     /// The name macOS shows for the provider's tile; must match `SettingsProvider` in the extension, whose display name equals the app's.
     static var tileName: String {
-        let brand = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Loomscreen"
+        let brand = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "w4llpapr"
         return brand + " — " + String(localized: "Selected Wallpaper", bundle: .appLanguage)
     }
 }

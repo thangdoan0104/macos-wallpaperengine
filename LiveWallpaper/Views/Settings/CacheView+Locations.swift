@@ -55,7 +55,7 @@ extension AppStorageLocation.Kind {
         case .steamTools: "SteamCMD installation required by the Workshop connector. Managed automatically."
         case .steamProfiles: "Protected Steam sign-in data that keeps your account connected. Managed automatically."
         case .credentials: "App-managed credential files. Credentials in macOS Keychain are protected and their disk size cannot be measured separately."
-        case .application: "The running Loomscreen application, including its bundled resources and extensions. Managed by installation and updates."
+        case .application: "The running w4llpapr application, including its bundled resources and extensions. Managed by installation and updates."
         case .localWallpapers: "Local wallpaper files and folders, including linked Apple Aerials. Included in wallpaper storage."
         }
     }

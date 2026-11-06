@@ -65,7 +65,7 @@ final class WPESceneTestingReports {
 
     private nonisolated static func make(entries: [Entry], omittedCount: Int, environmentLines: [String]) -> String {
         var sections = [
-            "Loomscreen scene testing report v1",
+            "w4llpapr scene testing report v1",
             "Current app run; anonymous labels identify load attempts, including reloads.\nA presented frame does not verify animation, cursor reveal, or visual fidelity.\nAdd observations by label, e.g. Scene 2: cursor reveal does nothing.",
             LogPrivacyRedactor.scrub(environmentLines.joined(separator: "\n")),
         ]

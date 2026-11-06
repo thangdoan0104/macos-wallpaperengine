@@ -181,7 +181,7 @@ struct EditDeskRoot: View {
     @ViewBuilder private var persistenceFailureNotice: some View {
         if SettingsManager.shared.persistenceStatus.hasFailure {
             HStack {
-                Text("Your latest changes aren't saved yet. Keep Loomscreen open and retry.")
+                Text("Your latest changes aren't saved yet. Keep w4llpapr open and retry.")
                 Spacer()
                 Button("Retry Save") {
                     Task { await SettingsManager.shared.flushPendingWrites() }
