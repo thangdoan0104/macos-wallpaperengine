@@ -32,8 +32,8 @@ jobs:
           cp "$OFFICIAL/Contents/MacOS/wpe-shaderc" "$OFFICIAL/Contents/Frameworks/libdxcompiler.dylib" "$OFFICIAL/Contents/Frameworks/libmetalirconverter.dylib" "$RUNNER_TEMP/helper/"
           codesign -d --entitlements :- "$OFFICIAL/Contents/MacOS/wpe-shaderc" > "$RUNNER_TEMP/helper.entitlements" 2>/dev/null || true
           cat "$RUNNER_TEMP/helper.entitlements"
-          NOTICES="$OFFICIAL/Contents/Resources/ThirdPartyNotices"
-          [ -d "$NOTICES" ] && cp -R "$NOTICES" "$RUNNER_TEMP/helper/notices" || find "$OFFICIAL/Contents/Resources" -maxdepth 2 -iname '*notice*'
+          mkdir -p "$RUNNER_TEMP/helper/notices"
+          ditto "$OFFICIAL/Contents/Resources/WPEShaderCompilerNotices" "$RUNNER_TEMP/helper/notices"
           (cd "$OFFICIAL" && find Contents -maxdepth 3 -not -path '*/Resources/*' | sort) > official-tree.txt
           hdiutil detach "$RUNNER_TEMP/official"
       - name: Build
@@ -53,7 +53,7 @@ jobs:
           mkdir -p "$APP/Contents/Frameworks"
           cp "$H/libdxcompiler.dylib" "$H/libmetalirconverter.dylib" "$APP/Contents/Frameworks/"
           cp "$H/wpe-shaderc" "$APP/Contents/MacOS/"
-          [ -d "$H/notices" ] && ditto "$H/notices" "$APP/Contents/Resources/ThirdPartyNotices"
+          ditto "$H/notices" "$APP/Contents/Resources/WPEShaderCompilerNotices"
           codesign -f -s - "$APP/Contents/Frameworks/libdxcompiler.dylib" "$APP/Contents/Frameworks/libmetalirconverter.dylib"
           if [ -s "$RUNNER_TEMP/helper.entitlements" ]; then
             codesign -f -s - --entitlements "$RUNNER_TEMP/helper.entitlements" "$APP/Contents/MacOS/wpe-shaderc"
