@@ -1,0 +1,73 @@
+name: Build w4
+on:
+  push:
+    branches: [w4]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-w4
+  cancel-in-progress: true
+env:
+  OFFICIAL_DMG: https://github.com/Paradox07127/macos-wallpaperengine/releases/download/loomscreen-v1.0.1/Loomscreen-Pro-1.0.1.dmg
+  OFFICIAL_SHA256: b0fc5f14f7d0ab90475508d359a66532e607836386ae0f876b9b38badb7a0f09
+jobs:
+  build:
+    runs-on: xcode-27
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          sw_vers
+          xcodebuild SWIFT_EMIT_LOC_STRINGS=NO -downloadComponent MetalToolchain
+      - name: Official shader helper
+        run: |
+          curl -fsSL -o official.dmg "$OFFICIAL_DMG"
+          echo "$OFFICIAL_SHA256  official.dmg" | shasum -a 256 -c -
+          hdiutil attach official.dmg -nobrowse -readonly -mountpoint "$RUNNER_TEMP/official"
+          OFFICIAL="$RUNNER_TEMP/official/Loomscreen Pro.app"
+          mkdir -p "$RUNNER_TEMP/helper"
+          cp "$OFFICIAL/Contents/MacOS/wpe-shaderc" "$OFFICIAL/Contents/Frameworks/libdxcompiler.dylib" "$OFFICIAL/Contents/Frameworks/libmetalirconverter.dylib" "$RUNNER_TEMP/helper/"
+          codesign -d --entitlements :- "$OFFICIAL/Contents/MacOS/wpe-shaderc" > "$RUNNER_TEMP/helper.entitlements" 2>/dev/null || true
+          cat "$RUNNER_TEMP/helper.entitlements"
+          (cd "$OFFICIAL" && find Contents -maxdepth 3 -not -path '*/Resources/*' | sort) > official-tree.txt
+          hdiutil detach "$RUNNER_TEMP/official"
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build -project LiveWallpaper.xcodeproj -scheme LiveWallpaper -configuration Release \
+            -destination 'platform=macOS,arch=arm64' -derivedDataPath "$RUNNER_TEMP/dd" \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
+            PROVISIONING_PROFILE_SPECIFIER= ENABLE_HARDENED_RUNTIME=NO SWIFT_EMIT_LOC_STRINGS=NO \
+            > build.log 2>&1 || { grep -nE 'error:|BUILD FAILED' build.log | head -80; tail -40 build.log; exit 1; }
+          tail -3 build.log
+      - name: Package
+        run: |
+          APP=$(ls -d "$RUNNER_TEMP"/dd/Build/Products/Release/*.app | head -1)
+          echo "built: $APP"
+          H="$RUNNER_TEMP/helper"
+          mkdir -p "$APP/Contents/Frameworks"
+          cp "$H/libdxcompiler.dylib" "$H/libmetalirconverter.dylib" "$APP/Contents/Frameworks/"
+          cp "$H/wpe-shaderc" "$APP/Contents/MacOS/"
+          codesign -f -s - "$APP/Contents/Frameworks/libdxcompiler.dylib" "$APP/Contents/Frameworks/libmetalirconverter.dylib"
+          if [ -s "$RUNNER_TEMP/helper.entitlements" ]; then
+            codesign -f -s - --entitlements "$RUNNER_TEMP/helper.entitlements" "$APP/Contents/MacOS/wpe-shaderc"
+          else
+            codesign -f -s - "$APP/Contents/MacOS/wpe-shaderc"
+          fi
+          codesign -d --entitlements :- "$APP" > "$RUNNER_TEMP/app.entitlements" 2>/dev/null
+          codesign -f -s - --entitlements "$RUNNER_TEMP/app.entitlements" "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP" 2>&1 | tail -5 || true
+          (cd "$APP" && find Contents -maxdepth 3 -not -path '*/Resources/*' | sort) > built-tree.txt
+          diff official-tree.txt built-tree.txt || true
+          ditto -c -k --sequesterRsrc --keepParent "$APP" w4-engine.zip
+          shasum -a 256 w4-engine.zip
+          ls -la w4-engine.zip
+      - name: Publish draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" w4-engine.zip official-tree.txt built-tree.txt --draft --target "$GITHUB_SHA" --title "$TAG" --notes "Bản build thử."
