@@ -240,6 +240,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let manager = ScreenManager(startupOptions: startupPlan.screenManagerOptions)
         #if !MAS_BUILD
         W4LyricController.shared.start()
+        W4DesktopPictureSync.shared.start(manager: manager)
         #endif
         screenManager = manager
         #if !MAS_BUILD

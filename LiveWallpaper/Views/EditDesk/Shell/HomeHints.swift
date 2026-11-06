@@ -79,7 +79,7 @@ struct HomeHints: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .padding(.bottom, 14)
 
-            hint("⌃ Keep Swiping · Full Wallpaper Library", opacity: shelfHintDismissed ? 0 : Self.shelfHintOpacity(progress))
+            hint("⌃ Keep Swiping · Full Wallpaper Library", opacity: 0)
                 .offset(
                     y: Self.shelfHintTop(progress: progress, windowSize: stage.stageSize)
                         - Self.drift * Self.ramp(progress, from: 1, to: 1.5)

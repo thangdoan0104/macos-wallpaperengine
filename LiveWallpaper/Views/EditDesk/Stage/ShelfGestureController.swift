@@ -55,8 +55,9 @@ final class ShelfGestureController {
     /// than a trackpad point, or the wheel needs sixteen clicks per state.
     func scroll(
         deltaX: CGFloat, deltaY: CGFloat, progress: Double,
-        phase: Phase, precise: Bool = true, shift: Bool = false
+        phase: Phase, precise: Bool = true, shift: Bool = false, forceRow: Bool = false
     ) -> Double? {
+        if forceRow { axis = .horizontal }
         let pointsPerState = precise ? StageGeometry.scrollPointsPerProgress : StageGeometry.wheelPointsPerProgress
         switch phase {
         case .began:
@@ -147,7 +148,19 @@ final class ShelfGestureController {
             wheelTravel -= Double(stepY / pointsPerState)
         }
         let moved = progress - Double(stepY / pointsPerState)
-        return StageGeometry.clampProgress(Self.wall(moved, within: (base - 1) ... (base + 1)))
+        return Self.stayInSection(StageGeometry.clampProgress(Self.wall(moved, within: (base - 1) ... (base + 1))), base: base)
+    }
+
+    /// w4: Overview and the Wallpaper Library are separate pages; scrolling never crosses between them.
+    static func stayInSection(_ value: Double, base: Double) -> Double {
+        base >= 2 ? max(value, 2) : min(value, 1)
+    }
+
+    /// w4: on the open shelf a mouse wheel moves through the wallpapers. Wheeling back at the first one closes the shelf.
+    func wheelScrollsRow(deltaY: CGFloat, progress: Double) -> Bool {
+        guard StageGeometry.snapTarget(for: progress) == 1 else { return false }
+        let atStart = rawRowOffset >= rowLimits.upperBound - 1
+        return !(deltaY > 0 && atStart)
     }
 
     /// Release velocity has to come from a window, not the last event: fingers decelerate as they
@@ -215,7 +228,7 @@ final class ShelfGestureController {
             return StageGeometry.snapTarget(for: progress)
         }
         let target = moved > 0 ? base + 1 : base - 1
-        return Int(StageGeometry.clampProgress(target).rounded())
+        return Int(Self.stayInSection(StageGeometry.clampProgress(target), base: base).rounded())
     }
 
     private func endGesture() {

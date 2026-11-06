@@ -1278,7 +1278,8 @@ final class EditDeskStageView: NSView, EditDeskStageEngine {
     static func shouldOwnGridScroll(
         phase: ShelfGestureController.Phase, gridAtTop: Bool, deltaY: CGFloat, wheelBurstBegan: Bool = false
     ) -> Bool {
-        gridAtTop && deltaY > 0 && (phase == .began || (phase == .changed && wheelBurstBegan))
+        // w4: the Wallpaper Library no longer scrolls back into Overview.
+        false
     }
 
     private func removeGridScrollMonitor() {
@@ -1365,9 +1366,12 @@ final class EditDeskStageView: NSView, EditDeskStageEngine {
         let precise = event.hasPreciseScrollingDeltas
         let unit: CGFloat = precise ? 1 : 24
         withoutActions {
+            let wheelY = event.scrollingDeltaY * unit
+            let wheelRow = !precise && abs(wheelY) > abs(event.scrollingDeltaX * unit)
+                && gesture.wheelScrollsRow(deltaY: wheelY, progress: progress.value)
             if let value = gesture.scroll(
-                deltaX: event.scrollingDeltaX * unit, deltaY: event.scrollingDeltaY * unit, progress: progress.value,
-                phase: phase, precise: precise, shift: event.modifierFlags.contains(.shift)
+                deltaX: wheelRow ? wheelY * 2 : event.scrollingDeltaX * unit, deltaY: wheelRow ? 0 : wheelY, progress: progress.value,
+                phase: phase, precise: precise, shift: event.modifierFlags.contains(.shift), forceRow: wheelRow
             ) {
                 beginLeavingLibrary(toward: value)
                 progress.jump(to: value)
@@ -1380,7 +1384,8 @@ final class EditDeskStageView: NSView, EditDeskStageEngine {
         }
         if let release = gesture.consumeRelease() {
             row.target = gesture.settleRow(quantum: StageGeometry.metrics(for: model.shelfStyle).pitch)
-            setProgress(Double(release.target), animated: true, velocity: release.velocity)
+            let sectionBase: Double = progress.value >= 1.5 ? 2 : 1
+            setProgress(ShelfGestureController.stayInSection(Double(release.target), base: sectionBase), animated: true, velocity: release.velocity)
         } else {
             scheduleSnap()
         }
