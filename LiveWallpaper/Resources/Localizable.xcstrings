@@ -60341,16 +60341,6 @@
         }
       }
     },
-    "Games" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư viện game"
-          }
-        }
-      }
-    },
     "Gatekeeper / quarantine" : {
       "comment" : "SteamCMD diagnostic (Doctor) probe label or result message.",
       "localizations" : {

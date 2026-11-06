@@ -917,12 +917,32 @@ struct HomePage: View {
                 sort: Binding(get: { library?.sort ?? .recentlyUsed }, set: { library?.sort = $0 }),
                 filter: Binding(get: { library?.filter }, set: { library?.filter = $0 }),
                 filterCount: countLibraryItems(for:),
-                onImport: promptLibraryImport,
+                onImport: isGamesTab ? importGamePictures : promptLibraryImport,
                 keepsImportOnShelf: library?.items.isEmpty == true,
-                showsAerialsControls: showsAerialsControls
+                showsAerialsControls: showsAerialsControls,
+                showsGamesPicker: isGamesTab
             )
             shelfEmptyHint
         }
+    }
+
+    private var isGamesTab: Bool {
+        #if LITE_BUILD
+        false
+        #else
+        library?.chip == .games
+        #endif
+    }
+
+    /// Pictures and videos added on the Game tab become library wallpapers straight away.
+    private func importGamePictures() {
+        #if !LITE_BUILD
+        Task {
+            let projects = await W4GamesModel.shared.importFiles()
+            guard !projects.isEmpty else { return }
+            WorkshopFolderImportCoordinator.shared.importProjects(from: projects.map(\.folder))
+        }
+        #endif
     }
 
     private var showsAerialsControls: Bool {
@@ -950,7 +970,11 @@ struct HomePage: View {
     @ViewBuilder
     private var shelfEmptyHint: some View {
         if router.page == .home, let library, library.visibleItems.isEmpty {
-            if Self.showsAerialsStatus(library) {
+            if isGamesTab {
+                Text(verbatim: "Vuốt lên để xem hình theo game")
+                    .font(DesignTokens.EditDesk.Typography.chip)
+                    .foregroundStyle(DesignTokens.EditDesk.Colors.textSecondary)
+            } else if Self.showsAerialsStatus(library) {
                 #if !MAS_BUILD
                 AerialsSourceStatusCard(presentation: .inline)
                 #endif
@@ -1022,6 +1046,9 @@ struct HomePage: View {
         case .recent: "Recent"
         case .steam: "Steam"
         case .local: "Local"
+        #if !LITE_BUILD
+        case .games: "Game"
+        #endif
         #if !MAS_BUILD
         case .aerials: "Aerials"
         #endif
@@ -1031,12 +1058,15 @@ struct HomePage: View {
     // MARK: Library page
 
     private enum LibraryGridContent {
-        case aerialsStatus, firstRunGuide, noResults, grid
+        case aerialsStatus, firstRunGuide, noResults, grid, games
     }
 
     /// Which of `wallpaperGrid`'s branches is showing; nil without a library model.
     private var libraryGridContent: LibraryGridContent? {
         guard let library else { return nil }
+        if isGamesTab {
+            return .games
+        }
         if Self.showsAerialsStatus(library) {
             return .aerialsStatus
         }
@@ -1055,7 +1085,16 @@ struct HomePage: View {
                         libraryTargetBanner(for: screen)
                             .transition(.opacity)
                     }
-                    if let library, Self.showsAerialsStatus(library) {
+                    if let library, isGamesTab {
+                        #if !LITE_BUILD
+                        W4GamesGrid(
+                            library: library,
+                            initialWidth: stage.stageSize.width - 2 * DesignTokens.LibraryGrid.horizontalPadding,
+                            openItem: openLibraryItem
+                        )
+                        .transition(.opacity)
+                        #endif
+                    } else if let library, Self.showsAerialsStatus(library) {
                         #if !MAS_BUILD
                         AerialsSourceStatusCard()
                             .transition(.opacity)
@@ -1137,7 +1176,7 @@ struct HomePage: View {
                     value: libraryTargetScreen != nil
                 )
                 // The reader sits inside the bars' safe-area insets, so this is the height left between them.
-                .frame(minHeight: library?.visibleItems.isEmpty == true ? geometry.size.height : nil)
+                .frame(minHeight: library?.visibleItems.isEmpty == true && !isGamesTab ? geometry.size.height : nil)
             }
             .scrollBounceBehavior(.basedOnSize)
             .modifier(GridTopReporter(atTop: { stage.gridAtTop = $0 }, offset: { stage.gridScrollOffset = $0 }))
@@ -1149,7 +1188,7 @@ struct HomePage: View {
             Color.clear
                 .frame(height: StageGeometry.gridTop - StageGeometry.topBarHeight)
         } bottom: {
-            if let library, !library.items.isEmpty {
+            if let library, !library.items.isEmpty, !isGamesTab {
                 LibraryStatusBar(summary: statusSummary(library))
             }
         }

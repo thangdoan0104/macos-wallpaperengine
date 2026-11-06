@@ -141,7 +141,7 @@ enum PageGuideContext: CaseIterable {
     static func page(_ page: EditDeskRouter.Page) -> Self {
         switch page {
         case .home: .overview
-        case .library, .games: .library
+        case .library: .library
         case .schemes: .saved
         case .systemWallpaper: .systemWallpaper
         case .workshop: .workshop

@@ -32,6 +32,8 @@ struct LibraryChipsRow: View {
     /// True shows Add to Library on the shelf too: with an empty library the shelf has nothing else to click.
     var keepsImportOnShelf = false
     var showsAerialsControls = false
+    /// The Game tab's game menu, in place of sort and filters.
+    var showsGamesPicker = false
 
     var body: some View {
         LibraryToolbarRow(centersFilters: true) {
@@ -49,11 +51,17 @@ struct LibraryChipsRow: View {
             LibraryOnlyControl(stage: stage) {
                 HStack(spacing: DesignTokens.Spacing.sm) {
                     #if !LITE_BUILD
-                    if showsFilterControl {
-                        filterControl
+                    if showsGamesPicker {
+                        W4GamesPicker()
+                    } else {
+                        if showsFilterControl {
+                            filterControl
+                        }
+                        LibrarySortControl(label: Text(Self.sortTitle(sort))) { sortMenu }
                     }
-                    #endif
+                    #else
                     LibrarySortControl(label: Text(Self.sortTitle(sort))) { sortMenu }
+                    #endif
                 }
                 .id(stage.snappedIndex)
             }

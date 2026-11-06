@@ -8,6 +8,9 @@ import Observation
 final class SavedLibraryModel {
     enum Chip: String, CaseIterable {
         case all, bookmarks, recent, steam, local
+        #if !LITE_BUILD
+        case games
+        #endif
         #if !MAS_BUILD
         case aerials
         #endif
@@ -348,6 +351,10 @@ final class SavedLibraryModel {
             Array(items.filter { usage(of: $0) != nil }.sorted(by: recentlyUsed).prefix(14))
         case .steam: items.filter(\.isSteam)
         case .local: items.filter { !$0.isSteam && $0.kind != .aerial }
+        #if !LITE_BUILD
+        // The Game tab draws its own grid; its pictures join the library once opened.
+        case .games: []
+        #endif
         #if !MAS_BUILD
         case .aerials: items.filter { $0.kind == .aerial }
         #endif
