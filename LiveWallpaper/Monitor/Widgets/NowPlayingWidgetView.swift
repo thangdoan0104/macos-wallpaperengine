@@ -384,6 +384,12 @@ struct NowPlayingWidgetView: View {
         NowPlayingOptions.resolvedAccent(options: options, artwork: accent)?.color ?? Design.signalAmber
     }
 
+    /// w4: the audio wave can have its own color; unset, it follows the accent as before.
+    private var waveColor: Color {
+        context.options[W4WaveColor.key]?.stringValue
+            .flatMap(NowPlayingOptions.accentColor(fromHex:))?.color ?? accentColor
+    }
+
     /// Which dial reaches which part of the tile — the pause dim deliberately
     /// stops at the cover.
     private var visibility: NowPlayingVisibility {
@@ -901,7 +907,7 @@ struct NowPlayingWidgetView: View {
                     #if !LITE_BUILD
                     if showsBars {
                         NowPlayingAudioReactiveView(
-                            mode: .bars, accent: accentColor, active: true, options: options
+                            mode: .bars, accent: waveColor, active: true, options: options
                         )
                         .frame(height: max(10, titleSize * 0.6))
                     }
@@ -1055,7 +1061,7 @@ struct NowPlayingWidgetView: View {
         if audioActive {
             NowPlayingAudioReactiveView(
                 mode: .radial(discFraction: 1 / 1.3),
-                accent: accentColor,
+                accent: waveColor,
                 active: true,
                 options: options
             )
@@ -1120,7 +1126,7 @@ struct NowPlayingWidgetView: View {
         #if !LITE_BUILD
         if audioActive {
             NowPlayingAudioReactiveView(
-                mode: .aurora, accent: accentColor, active: true, options: options
+                mode: .aurora, accent: waveColor, active: true, options: options
             )
         }
         #endif
@@ -1461,4 +1467,7 @@ private extension MusicOverlayContext {
     .background(Design.boardWash)
 }
 #endif
+enum W4WaveColor {
+    static let key = "w4WaveHex"
+}
 #endif

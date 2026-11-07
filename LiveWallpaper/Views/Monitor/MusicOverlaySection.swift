@@ -237,6 +237,8 @@ struct MusicOverlaySection: View {
                         accentColorRow
                     }
                     Divider()
+                    w4WaveRow
+                    Divider()
                     MusicOptionSlider(
                         icon: "circle.lefthalf.filled",
                         iconColor: .indigo,
@@ -278,6 +280,51 @@ struct MusicOverlaySection: View {
             .frame(maxWidth: 210)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Accent"))
+        }
+    }
+
+    private var w4WaveHex: String? {
+        music.options[W4WaveColor.key]?.stringValue.flatMap(NowPlayingOptions.canonicalHex)
+    }
+
+    private func setW4WaveHex(_ hex: String?) {
+        update { current in
+            var next = current
+            next.options[W4WaveColor.key] = hex.map(MonitorWidgetOptionValue.string)
+            return next
+        }
+    }
+
+    /// w4: a color for the audio wave alone.
+    private var w4WaveRow: some View {
+        SettingRow(icon: "waveform", iconColor: .orange, title: "Màu sóng nhạc") {
+            HStack(spacing: DesignTokens.Spacing.sm) {
+                Toggle(isOn: Binding(
+                    get: { w4WaveHex != nil },
+                    set: { custom in
+                        setW4WaveHex(custom ? (options.customAccentHex ?? "#FFC857") : nil)
+                    }
+                )) {
+                    Text(verbatim: "Màu riêng")
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                if w4WaveHex != nil {
+                    ColorPicker("", selection: Binding(
+                        get: { NowPlayingOptions.accentColor(fromHex: w4WaveHex ?? "")?.color ?? Design.signalAmber },
+                        set: { color in
+                            guard let srgb = NSColor(color).usingColorSpace(.sRGB) else { return }
+                            setW4WaveHex(NowPlayingOptions.hexString(for: NowPlayingAccentColor(
+                                red: Double(srgb.redComponent),
+                                green: Double(srgb.greenComponent),
+                                blue: Double(srgb.blueComponent)
+                            )))
+                        }
+                    ), supportsOpacity: false)
+                    .labelsHidden()
+                    .accessibilityLabel(Text(verbatim: "Màu sóng nhạc"))
+                }
+            }
         }
     }
 
