@@ -769,7 +769,7 @@ struct W4LyricLookControls: View {
     private func slider(_ title: LocalizedStringKey, icon: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         SettingRow(icon: icon, iconColor: .pink, title: title) {
             Slider(value: value, in: range)
-                .frame(maxWidth: sliderWidth)
+                .frame(width: sliderWidth)
                 .labelsHidden()
         }
     }
@@ -786,7 +786,7 @@ struct W4LyricLookControls: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
-            .frame(maxWidth: 200)
+            .frame(width: 170)
         }
         SettingRow(icon: "sparkles", iconColor: .pink, title: "Hiện chữ") {
             Picker("", selection: bind(\.reveal)) {
@@ -796,7 +796,7 @@ struct W4LyricLookControls: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
-            .frame(maxWidth: 280)
+            .frame(width: 250)
         }
         if look.reveal != .off {
             slider("Tốc độ hiện chữ", icon: "speedometer", value: bind(\.revealSpeed), range: 0.5...2)
@@ -917,7 +917,7 @@ struct W4LyricScreenCard: View {
     private func slider(_ title: LocalizedStringKey, icon: String, value: Binding<Double>) -> some View {
         SettingRow(icon: icon, iconColor: .pink, title: title) {
             Slider(value: value, in: 0...1)
-                .frame(maxWidth: 160)
+                .frame(width: 160)
                 .labelsHidden()
         }
     }
