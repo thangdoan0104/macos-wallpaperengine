@@ -10,7 +10,7 @@ struct OverlayCanvas: View {
     @Environment(\.isEnabled) private var isEnabled
     @FocusState private var focused: Bool
 
-    private static let coordinateSpace = "EditDeskOverlayCanvas"
+    fileprivate static let coordinateSpace = "EditDeskOverlayCanvas"
 
     var body: some View {
         ZStack {
@@ -120,6 +120,7 @@ struct OverlayCanvas: View {
                 options: session.overlay.music.options, isEditing: true, reduceMotion: true,
                 now: session.preview.chartReference(fallback: Date())
             ))
+            .modifier(W4MusicScaled(scale: W4MusicSize(session.overlay.music.options).scale))
             #endif
         }
     }
@@ -215,6 +216,13 @@ struct OverlayCanvas: View {
                                           dragging: session.drag?.selection == selection, renderScale: session.renderScale,
                                           onRemove: remove))
             .opacity(isBeingMovedByDrop(selection) ? DesignTokens.Opacity.dimmedContent : 1)
+            .overlay {
+                #if !MAS_BUILD
+                if selection == .music, session.selection == .music, session.drag == nil {
+                    W4MusicResizeHandles(session: session, rect: rect)
+                }
+                #endif
+            }
             .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.coordinateSpace))
                 .onChanged { value in
                     guard generation == session.gestureGeneration else { return }
@@ -348,3 +356,77 @@ private struct Landing {
     var scale: CGFloat = 1
     var opacity: Double = 1
 }
+
+#if !MAS_BUILD
+/// w4: drag the corner to grow or shrink the whole Music layer, the right edge to make it longer,
+/// the bottom edge to make it taller. Writes once, on release.
+private struct W4MusicResizeHandles: View {
+    let session: OverlayEditorSession
+    let rect: CGRect
+
+    private enum Handle {
+        case corner, trailing, bottom
+    }
+
+    @State private var start: (rect: CGRect, size: W4MusicSize)?
+
+    var body: some View {
+        let diameter = 12 * MonitorChromeScale.boost(forRenderScale: session.renderScale)
+        ZStack {
+            knob(.trailing, diameter: diameter)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                .offset(x: diameter / 2)
+            knob(.bottom, diameter: diameter)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .offset(y: diameter / 2)
+            knob(.corner, diameter: diameter * 1.3)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .offset(x: diameter / 2, y: diameter / 2)
+        }
+    }
+
+    private func knob(_ handle: Handle, diameter: CGFloat) -> some View {
+        Circle()
+            .fill(Color.white)
+            .overlay(Circle().strokeBorder(DesignTokens.EditDesk.Colors.strokeHotShell, lineWidth: diameter / 6))
+            .frame(width: diameter, height: diameter)
+            .contentShape(Circle().inset(by: -diameter / 2))
+            .onHover { inside in
+                if inside {
+                    (handle == .corner ? NSCursor.crosshair : handle == .trailing ? NSCursor.resizeLeftRight : NSCursor.resizeUpDown).push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 1, coordinateSpace: .named(OverlayCanvas.coordinateSpace))
+                    .onChanged { value in resize(handle, by: value.translation, commit: false) }
+                    .onEnded { value in
+                        resize(handle, by: value.translation, commit: true)
+                        start = nil
+                    }
+            )
+            .help(Text(verbatim: handle == .corner ? "Kéo để phóng to, thu nhỏ" : handle == .trailing ? "Kéo để dài ra, ngắn lại" : "Kéo để cao lên, thấp xuống"))
+    }
+
+    private func resize(_ handle: Handle, by translation: CGSize, commit: Bool) {
+        let origin = start ?? (rect, W4MusicSize(session.overlay.music.options))
+        start = origin
+        guard origin.rect.width > 0, origin.rect.height > 0 else { return }
+        var next = origin.size
+        switch handle {
+        case .corner:
+            let factor = max((origin.rect.width + translation.width) / origin.rect.width,
+                             (origin.rect.height + translation.height) / origin.rect.height)
+            next = W4MusicSize(scale: origin.size.scale * factor, width: origin.size.width, height: origin.size.height)
+        case .trailing:
+            let factor = (origin.rect.width + translation.width) / origin.rect.width
+            next = W4MusicSize(scale: origin.size.scale, width: origin.size.width * factor, height: origin.size.height)
+        case .bottom:
+            let factor = (origin.rect.height + translation.height) / origin.rect.height
+            next = W4MusicSize(scale: origin.size.scale, width: origin.size.width, height: origin.size.height * factor)
+        }
+        session.w4SetMusicSize(next, commit: commit)
+    }
+}
+#endif

@@ -78,6 +78,8 @@ struct MusicOverlaySection: View {
                 styleRow
                 Divider()
                 sizeRow
+                Divider()
+                w4SizeSliders
                 #if !LITE_BUILD
                 // Keyed to the switch, not the live tap: demand-driven capture is legitimately
                 // idle while music is paused.
@@ -167,6 +169,41 @@ struct MusicOverlaySection: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Widget size"))
         }
+    }
+
+    private var w4Size: W4MusicSize { W4MusicSize(music.options) }
+
+    private func setW4Size(_ size: W4MusicSize) {
+        update { current in
+            var next = current
+            next.options = size.applied(to: current.options)
+            return next
+        }
+    }
+
+    /// w4: the same sizes the handles on the layer drag, for exact values.
+    @ViewBuilder
+    private var w4SizeSliders: some View {
+        let size = w4Size
+        MusicOptionSlider(icon: "plus.magnifyingglass", iconColor: .blue, title: "Độ to", range: W4MusicSize.scaleRange,
+                          value: size.scale, format: Self.percent) { value in
+            setW4Size(W4MusicSize(scale: value, width: size.width, height: size.height))
+        }
+        .disabled(!isOn)
+        MusicOptionSlider(icon: "arrow.left.and.right", iconColor: .blue, title: "Độ dài", range: W4MusicSize.widthRange,
+                          value: size.width, format: Self.percent) { value in
+            setW4Size(W4MusicSize(scale: size.scale, width: value, height: size.height))
+        }
+        .disabled(!isOn)
+        MusicOptionSlider(icon: "arrow.up.and.down", iconColor: .blue, title: "Độ cao", range: W4MusicSize.heightRange,
+                          value: size.height, format: Self.percent) { value in
+            setW4Size(W4MusicSize(scale: size.scale, width: size.width, height: value))
+        }
+        .disabled(!isOn)
+        Text(verbatim: "Hoặc kéo trực tiếp trên khung: góc dưới phải để to nhỏ, cạnh phải để dài ra, cạnh dưới để cao lên.")
+            .font(DesignTokens.Typography.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var sizeBinding: Binding<MusicOverlaySize> {

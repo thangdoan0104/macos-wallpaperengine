@@ -2,6 +2,15 @@ import Foundation
 import LiveWallpaperCore
 
 extension ScreenManager {
+    /// w4: the overlay plus the lyric's look and place on this display.
+    private func w4SchemeOverlay(for screen: Screen) -> MonitorOverlayConfiguration {
+        #if !MAS_BUILD
+        W4SchemeLyric.embedding(in: monitorOverlay(for: screen), screenName: screen.nsScreen.localizedName)
+        #else
+        monitorOverlay(for: screen)
+        #endif
+    }
+
     @discardableResult
     func captureScheme(from screen: Screen, name: String) -> ScreenScheme? {
         guard !isTerminating,
@@ -13,7 +22,7 @@ extension ScreenManager {
         let scheme = SchemeStore.shared.add(
             name: name,
             configuration: configuration,
-            overlay: monitorOverlay(for: screen),
+            overlay: w4SchemeOverlay(for: screen),
             sourceDisplayName: screen.name
         )
         captureCover(forScheme: scheme.id, from: screen)
@@ -35,7 +44,7 @@ extension ScreenManager {
         let replaced = SchemeStore.shared.replace(
             scheme.id,
             configuration: configuration,
-            overlay: monitorOverlay(for: screen),
+            overlay: w4SchemeOverlay(for: screen),
             sourceDisplayName: screen.name
         )
         if replaced != nil {
@@ -77,6 +86,9 @@ extension ScreenManager {
                 saveConfiguration(configuration)
                 persistUserPause(false, for: screen)
                 setMonitorOverlay(scheme.overlay, for: screen)
+                #if !MAS_BUILD
+                W4SchemeLyric.restore(from: scheme.overlay, screenName: screen.nsScreen.localizedName)
+                #endif
                 Logger.info(
                     "Apply Scheme: applied scheme \(scheme.id) to screen \(screen.id)",
                     category: .screenManager

@@ -137,6 +137,7 @@ struct MusicOverlayRootContainer: View {
                         reduceMotion: reduceMotion,
                         now: timeline.date
                     ))
+                    .modifier(W4MusicScaled(scale: W4MusicSize(layout.configuration.options).scale))
                     .frame(width: rect.width, height: rect.height)
                     .offset(x: rect.minX, y: rect.minY)
                 }

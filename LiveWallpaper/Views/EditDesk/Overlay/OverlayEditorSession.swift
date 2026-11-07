@@ -652,6 +652,16 @@ final class OverlayEditorSession {
         return (CGRect(origin: origin, size: free.size), snap)
     }
 
+    #if !MAS_BUILD
+    /// w4: shows a resize live, and saves it when `commit` is set.
+    func w4SetMusicSize(_ size: W4MusicSize, commit: Bool) {
+        overlay.music.options = size.applied(to: overlay.music.options)
+        guard commit, let identity, let store, var latest = store.read(identity)?.overlay.music else { return }
+        latest.options = size.applied(to: latest.options)
+        store.writeMusic(latest, for: identity)
+    }
+    #endif
+
     func endDrag() {
         guard let drag, let identity, let store else { return }
         self.drag = nil

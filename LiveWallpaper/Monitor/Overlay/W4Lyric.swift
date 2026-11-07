@@ -164,6 +164,42 @@ enum W4LyricMatch {
     }
 }
 
+// MARK: - Schemes
+
+/// w4: a scheme keeps the lyric's look and its place on the captured display, inside the Music layer's
+/// options so it travels with the scheme's overlay. Favourite and recent fonts stay global.
+@MainActor
+enum W4SchemeLyric {
+    private static let key = "w4Lyric"
+    private static let placeKey = "scheme"
+
+    static func embedding(in overlay: MonitorOverlayConfiguration, screenName: String) -> MonitorOverlayConfiguration {
+        let current = W4LyricController.shared.style
+        var saved = current
+        saved.favoriteFonts = []
+        saved.recentFonts = []
+        saved.screens = [placeKey: current.screen(screenName)]
+        guard let data = try? JSONEncoder().encode(saved), let text = String(data: data, encoding: .utf8) else { return overlay }
+        var next = overlay
+        next.music.options[key] = .string(text)
+        return next
+    }
+
+    static func restore(from overlay: MonitorOverlayConfiguration, screenName: String) {
+        guard let text = overlay.music.options[key]?.stringValue,
+              let saved = try? JSONDecoder().decode(W4LyricStyle.self, from: Data(text.utf8)) else { return }
+        let controller = W4LyricController.shared
+        var next = saved
+        next.favoriteFonts = controller.style.favoriteFonts
+        next.recentFonts = controller.style.recentFonts
+        next.screens = controller.style.screens
+        if let place = saved.screens[placeKey] {
+            next.screens[screenName] = place
+        }
+        controller.style = next
+    }
+}
+
 // MARK: - Controller
 
 @MainActor
