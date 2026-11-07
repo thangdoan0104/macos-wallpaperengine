@@ -42,7 +42,11 @@ struct MusicOverlaySection: View {
             appearanceCard
             typographyCard
             elementsCard
+            #if !MAS_BUILD
+            W4LyricScreenCard(screenName: screen.nsScreen.localizedName, isExpanded: $isLyricsExpanded)
+            #else
             lyricsCard
+            #endif
             playbackCard
             effectsCard
         }

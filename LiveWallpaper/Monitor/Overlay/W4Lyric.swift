@@ -20,6 +20,42 @@ struct W4LyricScreen: Codable, Equatable, Sendable {
     var floating = false
     var x = 0.5
     var y = 0.1
+    /// nil follows the shared look from Settings.
+    var look: W4LyricLook?
+}
+
+/// How the lyric looks; Settings holds the shared one and a display can keep its own.
+struct W4LyricLook: Codable, Equatable, Sendable {
+    var size = 44.0
+    var bold = true
+    var currentHex = "#FFFFFF"
+    var nextHex = "#FFFFFF"
+    var nextOpacity = 0.55
+    var showNext = true
+    var align = W4LyricAlign.center
+    var reveal = W4LyricReveal.off
+    var revealSpeed = 1.0
+    var shadow = 1.0
+    var widthFraction = 0.7
+    var fontFamily = ""
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        size = try c.decodeIfPresent(Double.self, forKey: .size) ?? size
+        bold = try c.decodeIfPresent(Bool.self, forKey: .bold) ?? bold
+        currentHex = try c.decodeIfPresent(String.self, forKey: .currentHex) ?? currentHex
+        nextHex = try c.decodeIfPresent(String.self, forKey: .nextHex) ?? nextHex
+        nextOpacity = try c.decodeIfPresent(Double.self, forKey: .nextOpacity) ?? nextOpacity
+        showNext = try c.decodeIfPresent(Bool.self, forKey: .showNext) ?? showNext
+        align = try c.decodeIfPresent(W4LyricAlign.self, forKey: .align) ?? align
+        reveal = try c.decodeIfPresent(W4LyricReveal.self, forKey: .reveal) ?? reveal
+        revealSpeed = try c.decodeIfPresent(Double.self, forKey: .revealSpeed) ?? revealSpeed
+        shadow = try c.decodeIfPresent(Double.self, forKey: .shadow) ?? shadow
+        widthFraction = try c.decodeIfPresent(Double.self, forKey: .widthFraction) ?? widthFraction
+        fontFamily = try c.decodeIfPresent(String.self, forKey: .fontFamily) ?? fontFamily
+    }
 }
 
 struct W4LyricStyle: Codable, Equatable, Sendable {
@@ -66,6 +102,46 @@ struct W4LyricStyle: Codable, Equatable, Sendable {
     }
 
     func screen(_ name: String) -> W4LyricScreen { screens[name] ?? W4LyricScreen() }
+
+    var look: W4LyricLook {
+        get {
+            var look = W4LyricLook()
+            look.size = size
+            look.bold = bold
+            look.currentHex = currentHex
+            look.nextHex = nextHex
+            look.nextOpacity = nextOpacity
+            look.showNext = showNext
+            look.align = align
+            look.reveal = reveal
+            look.revealSpeed = revealSpeed
+            look.shadow = shadow
+            look.widthFraction = widthFraction
+            look.fontFamily = fontFamily
+            return look
+        }
+        set {
+            size = newValue.size
+            bold = newValue.bold
+            currentHex = newValue.currentHex
+            nextHex = newValue.nextHex
+            nextOpacity = newValue.nextOpacity
+            showNext = newValue.showNext
+            align = newValue.align
+            reveal = newValue.reveal
+            revealSpeed = newValue.revealSpeed
+            shadow = newValue.shadow
+            widthFraction = newValue.widthFraction
+            fontFamily = newValue.fontFamily
+        }
+    }
+
+    /// What a display draws: the shared look unless it keeps its own.
+    func effective(for name: String) -> W4LyricStyle {
+        var result = self
+        if let own = screen(name).look { result.look = own }
+        return result
+    }
 }
 
 // MARK: - Word timing
@@ -171,32 +247,29 @@ enum W4LyricMatch {
 @MainActor
 enum W4SchemeLyric {
     private static let key = "w4Lyric"
-    private static let placeKey = "scheme"
 
     static func embedding(in overlay: MonitorOverlayConfiguration, screenName: String) -> MonitorOverlayConfiguration {
         let current = W4LyricController.shared.style
-        var saved = current
-        saved.favoriteFonts = []
-        saved.recentFonts = []
-        saved.screens = [placeKey: current.screen(screenName)]
-        guard let data = try? JSONEncoder().encode(saved), let text = String(data: data, encoding: .utf8) else { return overlay }
+        var place = current.screen(screenName)
+        place.look = place.look ?? current.look
+        guard let data = try? JSONEncoder().encode(place), let text = String(data: data, encoding: .utf8) else { return overlay }
         var next = overlay
         next.music.options[key] = .string(text)
         return next
     }
 
+    /// Only the applied display changes; the shared look and the other displays stay.
     static func restore(from overlay: MonitorOverlayConfiguration, screenName: String) {
-        guard let text = overlay.music.options[key]?.stringValue,
-              let saved = try? JSONDecoder().decode(W4LyricStyle.self, from: Data(text.utf8)) else { return }
+        guard let text = overlay.music.options[key]?.stringValue, let data = text.data(using: .utf8) else { return }
         let controller = W4LyricController.shared
-        var next = saved
-        next.favoriteFonts = controller.style.favoriteFonts
-        next.recentFonts = controller.style.recentFonts
-        next.screens = controller.style.screens
-        if let place = saved.screens[placeKey] {
-            next.screens[screenName] = place
+        if let place = try? JSONDecoder().decode(W4LyricScreen.self, from: data), place.look != nil {
+            controller.style.screens[screenName] = place
+        } else if let older = try? JSONDecoder().decode(W4LyricStyle.self, from: data) {
+            // Schemes saved by the build before kept the whole style with its place under one key.
+            var place = older.screens.values.first ?? controller.style.screen(screenName)
+            place.look = older.look
+            controller.style.screens[screenName] = place
         }
-        controller.style = next
     }
 }
 
@@ -271,8 +344,8 @@ final class W4LyricController: ObservableObject {
         return lines.indices.contains(active) ? lines[active].text : ""
     }
 
-    func font(size: Double, bold: Bool) -> Font {
-        let family = previewFontFamily ?? style.fontFamily
+    func font(size: Double, bold: Bool, family chosen: String) -> Font {
+        let family = previewFontFamily ?? chosen
         let weight: Font.Weight = bold ? .bold : .semibold
         if family.isEmpty { return .system(size: size, weight: weight, design: .rounded) }
         return Font.custom(family, size: size).weight(weight)
@@ -328,10 +401,11 @@ final class W4LyricController: ObservableObject {
             let name = screen.localizedName
             let place = style.screen(name)
             guard place.on else { continue }
-            let panel = panels[name] ?? makePanel()
+            let panel = panels[name] ?? makePanel(screenName: name)
             panels[name] = panel
-            let width = screen.frame.width * style.widthFraction
-            let height = style.size * 1.34 * 4
+            let look = style.effective(for: name)
+            let width = screen.frame.width * look.widthFraction
+            let height = look.size * 1.34 * 4
             let x = screen.frame.minX + (screen.frame.width - width) * place.x
             let y = screen.visibleFrame.minY + (screen.visibleFrame.height - height) * place.y
             panel.setFrame(NSRect(x: x, y: y, width: width, height: height), display: false)
@@ -342,7 +416,7 @@ final class W4LyricController: ObservableObject {
         }
     }
 
-    private func makePanel() -> NSPanel {
+    private func makePanel(screenName: String) -> NSPanel {
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 800, height: 220),
                             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.isOpaque = false
@@ -353,7 +427,7 @@ final class W4LyricController: ObservableObject {
         panel.isReleasedWhenClosed = false
         panel.animationBehavior = .none
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
-        panel.contentView = NSHostingView(rootView: W4LyricView(controller: self))
+        panel.contentView = NSHostingView(rootView: W4LyricView(controller: self, screenName: screenName))
         return panel
     }
 }
@@ -362,9 +436,10 @@ final class W4LyricController: ObservableObject {
 
 struct W4LyricView: View {
     @ObservedObject var controller: W4LyricController
+    let screenName: String
     private let sideScale: CGFloat = 0.62
 
-    private var style: W4LyricStyle { controller.style }
+    private var style: W4LyricStyle { controller.style.effective(for: screenName) }
 
     private var frameAlign: Alignment {
         switch style.align {
@@ -421,7 +496,7 @@ struct W4LyricView: View {
         return TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !revealing)) { context in
             lineText(line, next: next, base: base, revealing: revealing, now: context.date)
         }
-        .font(controller.font(size: style.size, bold: style.bold))
+        .font(controller.font(size: style.size, bold: style.bold, family: style.fontFamily))
         .lineLimit(1)
         .minimumScaleFactor(0.45)
         .scaleEffect(isCurrent ? 1 : sideScale, anchor: anchor)
@@ -516,6 +591,9 @@ struct W4FontPicker: View {
     }
 
     @ObservedObject var controller: W4LyricController
+    /// The look being edited: the shared one or a display's own.
+    @Binding var family: String
+    var bold = true
     @State private var query = ""
     @State private var filter = Filter.all
     @State private var fonts: [W4FontInfo] = []
@@ -548,15 +626,15 @@ struct W4FontPicker: View {
         return line.isEmpty ? "Lyric sẽ hiện như thế này" : line
     }
 
-    private func pick(_ family: String) {
-        var style = controller.style
-        style.fontFamily = family
-        if !family.isEmpty {
-            style.recentFonts.removeAll { $0 == family }
-            style.recentFonts.insert(family, at: 0)
+    private func pick(_ chosen: String) {
+        if !chosen.isEmpty {
+            var style = controller.style
+            style.recentFonts.removeAll { $0 == chosen }
+            style.recentFonts.insert(chosen, at: 0)
             style.recentFonts = Array(style.recentFonts.prefix(10))
+            controller.style = style
         }
-        controller.style = style
+        family = chosen
     }
 
     private func toggleFavorite(_ family: String) {
@@ -570,7 +648,7 @@ struct W4FontPicker: View {
     }
 
     private func row(_ info: W4FontInfo) -> some View {
-        let selected = controller.style.fontFamily == info.family
+        let selected = family == info.family
         let favorite = controller.style.favoriteFonts.contains(info.family)
         return HStack(spacing: 8) {
             Button { pick(info.family) } label: {
@@ -610,7 +688,7 @@ struct W4FontPicker: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(verbatim: sample)
-                .font(controller.font(size: 22, bold: controller.style.bold))
+                .font(controller.font(size: 22, bold: bold, family: family))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .frame(maxWidth: .infinity, minHeight: 44)
@@ -632,7 +710,7 @@ struct W4FontPicker: View {
                         HStack {
                             Text(verbatim: "Mặc định của hệ thống").font(.system(size: 15, design: .rounded))
                             Spacer()
-                            if controller.style.fontFamily.isEmpty {
+                            if family.isEmpty {
                                 Image(systemName: "checkmark").foregroundStyle(.tint)
                             }
                         }
@@ -660,154 +738,236 @@ struct W4FontPicker: View {
 
 // MARK: - Settings section
 
-struct W4LyricSettingsSection: View {
-    @ObservedObject private var controller = W4LyricController.shared
+/// Every control for one look, shared by Settings and a display's Music panel.
+struct W4LyricLookControls: View {
+    @ObservedObject var controller: W4LyricController
+    @Binding var look: W4LyricLook
+    /// Also moves the lyric to that side of the display(s) this look draws on.
+    let onAlign: (W4LyricAlign) -> Void
+    var sliderWidth: CGFloat = 180
+
     @State private var showingFonts = false
+
+    private func bind<T>(_ path: WritableKeyPath<W4LyricLook, T>) -> Binding<T> {
+        Binding(get: { look[keyPath: path] }, set: { look[keyPath: path] = $0 })
+    }
+
+    private func colorBinding(_ path: WritableKeyPath<W4LyricLook, String>) -> Binding<Color> {
+        Binding(
+            get: { MonitorPanelAppearance.color(fromHex: look[keyPath: path]) ?? .white },
+            set: { look[keyPath: path] = MonitorPanelAppearance.hex(from: $0) }
+        )
+    }
 
     private func stepFont(_ delta: Int) {
         let list = W4FontCatalog.all.map(\.family)
         guard !list.isEmpty else { return }
-        let current = list.firstIndex(of: controller.style.fontFamily) ?? (delta > 0 ? -1 : 0)
-        let next = (current + delta + list.count) % list.count
-        controller.style.fontFamily = list[next]
-    }
-
-    private func bind<T>(_ path: WritableKeyPath<W4LyricStyle, T>) -> Binding<T> {
-        Binding(get: { controller.style[keyPath: path] }, set: { controller.style[keyPath: path] = $0 })
-    }
-
-    private func colorBinding(_ path: WritableKeyPath<W4LyricStyle, String>) -> Binding<Color> {
-        Binding(
-            get: { MonitorPanelAppearance.color(fromHex: controller.style[keyPath: path]) ?? .white },
-            set: { controller.style[keyPath: path] = MonitorPanelAppearance.hex(from: $0) }
-        )
-    }
-
-    private func screenBinding<T>(_ name: String, _ path: WritableKeyPath<W4LyricScreen, T>) -> Binding<T> {
-        Binding(
-            get: { controller.style.screen(name)[keyPath: path] },
-            set: { value in
-                var place = controller.style.screen(name)
-                place[keyPath: path] = value
-                controller.style.screens[name] = place
-            }
-        )
-    }
-
-    private var alignBinding: Binding<W4LyricAlign> {
-        Binding(
-            get: { controller.style.align },
-            set: { value in
-                var next = controller.style
-                next.align = value
-                let x: Double
-                switch value {
-                case .left: x = 0
-                case .center: x = 0.5
-                case .right: x = 1
-                }
-                for screen in NSScreen.screens {
-                    var place = next.screen(screen.localizedName)
-                    place.x = x
-                    next.screens[screen.localizedName] = place
-                }
-                controller.style = next
-            }
-        )
+        let current = list.firstIndex(of: look.fontFamily) ?? (delta > 0 ? -1 : 0)
+        look.fontFamily = list[(current + delta + list.count) % list.count]
     }
 
     private func slider(_ title: LocalizedStringKey, icon: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         SettingRow(icon: icon, iconColor: .pink, title: title) {
             Slider(value: value, in: range)
-                .frame(width: 180)
+                .frame(maxWidth: sliderWidth)
                 .labelsHidden()
         }
     }
 
     var body: some View {
+        SettingRow(icon: "text.alignleft", iconColor: .pink, title: "Căn chữ") {
+            Picker("", selection: Binding(get: { look.align }, set: { value in
+                look.align = value
+                onAlign(value)
+            })) {
+                Text(verbatim: "Trái").tag(W4LyricAlign.left)
+                Text(verbatim: "Giữa").tag(W4LyricAlign.center)
+                Text(verbatim: "Phải").tag(W4LyricAlign.right)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 200)
+        }
+        SettingRow(icon: "sparkles", iconColor: .pink, title: "Hiện chữ") {
+            Picker("", selection: bind(\.reveal)) {
+                Text(verbatim: "Cả dòng").tag(W4LyricReveal.off)
+                Text(verbatim: "Từng chữ").tag(W4LyricReveal.fade)
+                Text(verbatim: "Sáng từng chữ").tag(W4LyricReveal.karaoke)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 280)
+        }
+        if look.reveal != .off {
+            slider("Tốc độ hiện chữ", icon: "speedometer", value: bind(\.revealSpeed), range: 0.5...2)
+        }
+        SettingRow(icon: "textformat", iconColor: .pink, title: "Phông chữ") {
+            HStack(spacing: 6) {
+                Button { stepFont(-1) } label: { Image(systemName: "chevron.left") }
+                    .accessibilityLabel(Text(verbatim: "Phông trước"))
+                Button {
+                    showingFonts = true
+                } label: {
+                    Text(verbatim: look.fontFamily.isEmpty ? "Mặc định" : look.fontFamily)
+                        .lineLimit(1)
+                        .frame(minWidth: 90, maxWidth: 170)
+                }
+                .popover(isPresented: $showingFonts, arrowEdge: .bottom) {
+                    W4FontPicker(controller: controller, family: bind(\.fontFamily), bold: look.bold)
+                }
+                Button { stepFont(1) } label: { Image(systemName: "chevron.right") }
+                    .accessibilityLabel(Text(verbatim: "Phông sau"))
+            }
+        }
+        slider("Cỡ chữ", icon: "textformat.size", value: bind(\.size), range: 18...120)
+        slider("Độ rộng khung", icon: "arrow.left.and.right", value: bind(\.widthFraction), range: 0.3...1)
+        SettingRow(icon: "bold", iconColor: .pink, title: "Chữ đậm") {
+            Toggle("", isOn: bind(\.bold)).labelsHidden().toggleStyle(.switch)
+        }
+        SettingRow(icon: "paintpalette", iconColor: .pink, title: "Màu dòng đang hát") {
+            ColorPicker("", selection: colorBinding(\.currentHex), supportsOpacity: false).labelsHidden()
+        }
+        SettingRow(icon: "list.bullet", iconColor: .pink, title: "Hiện dòng trước và sau") {
+            Toggle("", isOn: bind(\.showNext)).labelsHidden().toggleStyle(.switch)
+        }
+        SettingRow(icon: "paintpalette", iconColor: .pink, title: "Màu dòng trước và sau") {
+            ColorPicker("", selection: colorBinding(\.nextHex), supportsOpacity: false).labelsHidden()
+        }
+        slider("Độ rõ dòng trước và sau", icon: "circle.lefthalf.filled", value: bind(\.nextOpacity), range: 0.1...1)
+        slider("Bóng chữ", icon: "shadow", value: bind(\.shadow), range: 0...1)
+    }
+
+    static func x(for align: W4LyricAlign) -> Double {
+        switch align {
+        case .left: 0
+        case .center: 0.5
+        case .right: 1
+        }
+    }
+}
+
+/// Settings: what every display shares. Each display's own place and look live in its Music panel.
+struct W4LyricSettingsSection: View {
+    @ObservedObject private var controller = W4LyricController.shared
+
+    private var sharedLook: Binding<W4LyricLook> {
+        Binding(get: { controller.style.look }, set: { controller.style.look = $0 })
+    }
+
+    var body: some View {
         Section {
             SettingRow(icon: "music.note", iconColor: .pink, title: "Hiện lyric") {
-                Toggle("", isOn: bind(\.enabled)).labelsHidden().toggleStyle(.switch)
+                Toggle("", isOn: Binding(get: { controller.style.enabled }, set: { controller.style.enabled = $0 }))
+                    .labelsHidden().toggleStyle(.switch)
             }
             Text(verbatim: controller.statusText.isEmpty ? "Mở Spotify bản máy tính và phát một bài." : controller.statusText)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            SettingRow(icon: "text.alignleft", iconColor: .pink, title: "Căn chữ") {
-                Picker("", selection: alignBinding) {
-                    Text(verbatim: "Trái").tag(W4LyricAlign.left)
-                    Text(verbatim: "Giữa").tag(W4LyricAlign.center)
-                    Text(verbatim: "Phải").tag(W4LyricAlign.right)
+            SettingRow(icon: "clock", iconColor: .pink, title: "Sớm hoặc muộn") {
+                Slider(value: Binding(get: { controller.style.offset }, set: { controller.style.offset = $0 }), in: -3...3)
+                    .frame(width: 180)
+                    .labelsHidden()
+            }
+            W4LyricLookControls(controller: controller, look: sharedLook) { align in
+                // Displays that keep their own look also keep their own place.
+                var next = controller.style
+                for screen in NSScreen.screens where next.screen(screen.localizedName).look == nil {
+                    var place = next.screen(screen.localizedName)
+                    place.x = W4LyricLookControls.x(for: align)
+                    next.screens[screen.localizedName] = place
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .frame(width: 220)
+                controller.style = next
             }
-            SettingRow(icon: "sparkles", iconColor: .pink, title: "Hiện chữ") {
-                Picker("", selection: bind(\.reveal)) {
-                    Text(verbatim: "Cả dòng").tag(W4LyricReveal.off)
-                    Text(verbatim: "Từng chữ").tag(W4LyricReveal.fade)
-                    Text(verbatim: "Sáng từng chữ").tag(W4LyricReveal.karaoke)
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .frame(width: 300)
-            }
-            if controller.style.reveal != .off {
-                slider("Tốc độ hiện chữ", icon: "speedometer", value: bind(\.revealSpeed), range: 0.5...2)
-            }
-            SettingRow(icon: "textformat", iconColor: .pink, title: "Phông chữ") {
-                HStack(spacing: 6) {
-                    Button { stepFont(-1) } label: { Image(systemName: "chevron.left") }
-                        .accessibilityLabel(Text(verbatim: "Phông trước"))
-                    Button {
-                        showingFonts = true
-                    } label: {
-                        Text(verbatim: controller.style.fontFamily.isEmpty ? "Mặc định" : controller.style.fontFamily)
-                            .lineLimit(1)
-                            .frame(minWidth: 120, maxWidth: 200)
-                    }
-                    .popover(isPresented: $showingFonts, arrowEdge: .bottom) {
-                        W4FontPicker(controller: controller)
-                    }
-                    Button { stepFont(1) } label: { Image(systemName: "chevron.right") }
-                        .accessibilityLabel(Text(verbatim: "Phông sau"))
-                }
-            }
-            slider("Cỡ chữ", icon: "textformat.size", value: bind(\.size), range: 18...120)
-            slider("Độ rộng khung", icon: "arrow.left.and.right", value: bind(\.widthFraction), range: 0.3...1)
-            slider("Sớm hoặc muộn", icon: "clock", value: bind(\.offset), range: -3...3)
-            SettingRow(icon: "bold", iconColor: .pink, title: "Chữ đậm") {
-                Toggle("", isOn: bind(\.bold)).labelsHidden().toggleStyle(.switch)
-            }
-            SettingRow(icon: "paintpalette", iconColor: .pink, title: "Màu dòng đang hát") {
-                ColorPicker("", selection: colorBinding(\.currentHex), supportsOpacity: false).labelsHidden()
-            }
-            SettingRow(icon: "list.bullet", iconColor: .pink, title: "Hiện dòng trước và sau") {
-                Toggle("", isOn: bind(\.showNext)).labelsHidden().toggleStyle(.switch)
-            }
-            SettingRow(icon: "paintpalette", iconColor: .pink, title: "Màu dòng trước và sau") {
-                ColorPicker("", selection: colorBinding(\.nextHex), supportsOpacity: false).labelsHidden()
-            }
-            slider("Độ rõ dòng trước và sau", icon: "circle.lefthalf.filled", value: bind(\.nextOpacity), range: 0.1...1)
-            slider("Bóng chữ", icon: "shadow", value: bind(\.shadow), range: 0...1)
+            Text(verbatim: "Đây là kiểu chung cho mọi màn. Vị trí và kiểu riêng của từng màn chỉnh trong phần chỉnh lớp phủ của màn đó, mục Nhạc → Lyric.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         } header: {
-            Text(verbatim: "Lyric")
+            Text(verbatim: "Lyric chung")
         }
-        ForEach(NSScreen.screens, id: \.localizedName) { screen in
-            let name = screen.localizedName
-            Section {
-                SettingRow(icon: "display", iconColor: .pink, title: "Hiện trên màn này") {
-                    Toggle("", isOn: screenBinding(name, \.on)).labelsHidden().toggleStyle(.switch)
+    }
+}
+
+/// A display's Music panel: where its lyric sits, and optionally a look of its own. Saved with schemes.
+struct W4LyricScreenCard: View {
+    let screenName: String
+    @Binding var isExpanded: Bool
+    @ObservedObject private var controller = W4LyricController.shared
+
+    private var place: W4LyricScreen { controller.style.screen(screenName) }
+
+    private func placeBinding<T>(_ path: WritableKeyPath<W4LyricScreen, T>) -> Binding<T> {
+        Binding(
+            get: { controller.style.screen(screenName)[keyPath: path] },
+            set: { value in
+                var next = controller.style.screen(screenName)
+                next[keyPath: path] = value
+                controller.style.screens[screenName] = next
+            }
+        )
+    }
+
+    private var ownLook: Binding<W4LyricLook> {
+        Binding(
+            get: { controller.style.effective(for: screenName).look },
+            set: { placeBinding(\.look).wrappedValue = $0 }
+        )
+    }
+
+    private func slider(_ title: LocalizedStringKey, icon: String, value: Binding<Double>) -> some View {
+        SettingRow(icon: icon, iconColor: .pink, title: title) {
+            Slider(value: value, in: 0...1)
+                .frame(maxWidth: 160)
+                .labelsHidden()
+        }
+    }
+
+    var body: some View {
+        GroupBox {
+            CollapsibleSection(title: "Lyric", systemImage: "quote.bubble", isExpanded: $isExpanded) {
+                VStack(alignment: .leading, spacing: 8) {
+                    if !controller.style.enabled {
+                        Text(verbatim: "Lyric đang tắt chung trong Cài đặt → Lớp phủ.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    SettingRow(icon: "display", iconColor: .pink, title: "Hiện trên màn này") {
+                        Toggle("", isOn: placeBinding(\.on)).labelsHidden().toggleStyle(.switch)
+                    }
+                    Divider()
+                    SettingRow(icon: "macwindow.on.rectangle", iconColor: .pink, title: "Nổi trên mọi cửa sổ") {
+                        Toggle("", isOn: placeBinding(\.floating)).labelsHidden().toggleStyle(.switch)
+                    }
+                    Divider()
+                    slider("Trái, phải", icon: "arrow.left.and.right", value: placeBinding(\.x))
+                    slider("Dưới, trên", icon: "arrow.up.and.down", value: placeBinding(\.y))
+                    Divider()
+                    SettingRow(icon: "paintbrush", iconColor: .pink, title: "Kiểu riêng cho màn này") {
+                        Toggle("", isOn: Binding(
+                            get: { place.look != nil },
+                            set: { own in placeBinding(\.look).wrappedValue = own ? controller.style.look : nil }
+                        ))
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                    }
+                    if place.look != nil {
+                        W4LyricLookControls(controller: controller, look: ownLook, onAlign: { align in
+                            placeBinding(\.x).wrappedValue = W4LyricLookControls.x(for: align)
+                        }, sliderWidth: 160)
+                    } else {
+                        Text(verbatim: "Đang theo kiểu chung trong Cài đặt. Bật lên để chỉnh font, cỡ, màu riêng cho màn này.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Text(verbatim: "Lưu bộ màn hình là lưu luôn lyric của màn này.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                SettingRow(icon: "macwindow.on.rectangle", iconColor: .pink, title: "Nổi trên mọi cửa sổ") {
-                    Toggle("", isOn: screenBinding(name, \.floating)).labelsHidden().toggleStyle(.switch)
-                }
-                slider("Trái, phải", icon: "arrow.left.and.right", value: screenBinding(name, \.x), range: 0...1)
-                slider("Dưới, trên", icon: "arrow.up.and.down", value: screenBinding(name, \.y), range: 0...1)
-            } header: {
-                Text(verbatim: "Lyric trên \(name)")
+                .disabled(!controller.style.enabled)
             }
         }
+        .groupBoxStyle(ContainerGroupBoxStyle())
     }
 }
 #endif
