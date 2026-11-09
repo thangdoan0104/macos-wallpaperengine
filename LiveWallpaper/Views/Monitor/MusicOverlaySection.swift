@@ -15,6 +15,8 @@ struct MusicOverlaySection: View {
     @AppStorage("Music.LyricsExpanded", store: .appScoped()) private var isLyricsExpanded = false
     @AppStorage("Music.PlaybackExpanded", store: .appScoped()) private var isPlaybackExpanded = true
     @AppStorage("Music.EffectsExpanded", store: .appScoped()) private var isEffectsExpanded = false
+    @AppStorage("Music.W4CreativeExpanded", store: .appScoped()) private var isW4CreativeExpanded = true
+    @State private var w4ShowingFonts = false
 
     private var overlay: MonitorOverlayConfiguration {
         screenManager.monitorOverlay(for: screen)
@@ -39,6 +41,7 @@ struct MusicOverlaySection: View {
     var body: some View {
         VStack(spacing: 12) {
             controlCard
+            w4CreativeCard
             appearanceCard
             typographyCard
             elementsCard
@@ -769,6 +772,129 @@ private struct MusicPlaybackPermissionCaption: View {
         case .notDetermined:
             Text("Playback control requires Automation permission on first use.")
         }
+    }
+}
+// MARK: - w4 creative card
+
+extension MusicOverlaySection {
+    private var w4Look: W4MusicLook { W4MusicLook(music.options) }
+
+    private func w4Set(_ key: String, _ value: MonitorWidgetOptionValue?) {
+        update { current in
+            var next = current
+            next.options[key] = value
+            return next
+        }
+    }
+
+    private func w4Number(_ key: String) -> (Double) -> Void {
+        { value in w4Set(key, .number(value)) }
+    }
+
+    private func w4Toggle(_ title: LocalizedStringKey, icon: String, key: String, value: Bool, fallback: Bool = false) -> some View {
+        SettingRow(icon: icon, iconColor: .purple, title: title) {
+            Toggle("", isOn: Binding(get: { value }, set: { w4Set(key, $0 == fallback ? nil : .bool($0)) }))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
+    }
+
+    private static func degrees(_ value: Double) -> String { String(format: "%.0f°", value) }
+
+    private func w4Heading(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(DesignTokens.Typography.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+    }
+
+    /// Layout and look beyond Loomscreen's: where the cover sits and how it is framed, title font, a card behind.
+    var w4CreativeCard: some View {
+        let look = w4Look
+        return GroupBox {
+            CollapsibleSection(title: "Bố cục và trang trí", systemImage: "wand.and.stars", isExpanded: $isW4CreativeExpanded) {
+                VStack(alignment: .leading, spacing: 8) {
+                    w4Heading("Ảnh bìa")
+                    SettingRow(icon: "rectangle.lefthalf.inset.filled", iconColor: .purple, title: "Vị trí ảnh") {
+                        Picker("", selection: Binding(
+                            get: { look.place },
+                            set: { w4Set(W4MusicLook.Key.place, $0 == .auto ? nil : .string($0.rawValue)) }
+                        )) {
+                            ForEach(W4MusicLook.Place.allCases) { place in
+                                Text(verbatim: place.label).tag(place)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .frame(width: 250)
+                    }
+                    MusicOptionSlider(icon: "arrow.up.left.and.arrow.down.right", iconColor: .blue, title: "Cỡ ảnh",
+                                      range: NowPlayingOptions.Limits.artworkScale, value: options.artworkScale,
+                                      format: Self.multiplier) { value in updateOptions { $0.artworkScale = value } }
+                    MusicOptionSlider(icon: "square.dashed", iconColor: .purple, title: "Bo góc ảnh", range: 0 ... 1,
+                                      value: look.radius ?? 0.05, format: Self.percent, commit: w4Number(W4MusicLook.Key.radius))
+                        .disabled(options.artworkShape != .rounded)
+                    MusicOptionSlider(icon: "rotate.right", iconColor: .purple, title: "Nghiêng ảnh", range: -30 ... 30,
+                                      value: look.tilt, format: Self.degrees, commit: w4Number(W4MusicLook.Key.tilt))
+                    MusicOptionSlider(icon: "square.on.square", iconColor: .purple, title: "Viền ảnh", range: 0 ... 1,
+                                      value: look.border, format: Self.percent, commit: w4Number(W4MusicLook.Key.border))
+                    MusicOptionSlider(icon: "sun.max", iconColor: .orange, title: "Phát sáng quanh ảnh", range: 0 ... 1,
+                                      value: look.glow, format: Self.percent, commit: w4Number(W4MusicLook.Key.glow))
+                    MusicOptionSlider(icon: "arrow.left.and.right", iconColor: .purple, title: "Cách chữ", range: 0 ... 4,
+                                      value: look.gap, format: Self.multiplier, commit: w4Number(W4MusicLook.Key.gap))
+                    w4Toggle("Xoay khi đang phát", icon: "record.circle", key: W4MusicLook.Key.spin, value: look.spin)
+                    if look.spin {
+                        MusicOptionSlider(icon: "speedometer", iconColor: .purple, title: "Tốc độ xoay", range: 0.2 ... 4,
+                                          value: look.spinSpeed, format: Self.multiplier, commit: w4Number(W4MusicLook.Key.spinSpeed))
+                    }
+                    Text(verbatim: "Viền và phát sáng dùng màu sóng nhạc.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Divider()
+                    w4Heading("Chữ")
+                    SettingRow(icon: "textformat", iconColor: .purple, title: "Phông tên bài") {
+                        Button {
+                            w4ShowingFonts = true
+                        } label: {
+                            Text(verbatim: look.titleFamily.isEmpty ? "Theo kiểu chữ" : look.titleFamily)
+                                .lineLimit(1)
+                                .frame(minWidth: 90, maxWidth: 170)
+                        }
+                        .popover(isPresented: $w4ShowingFonts, arrowEdge: .bottom) {
+                            W4FontPicker(
+                                controller: W4LyricController.shared,
+                                family: Binding(
+                                    get: { look.titleFamily },
+                                    set: { w4Set(W4MusicLook.Key.titleFamily, $0.isEmpty ? nil : .string($0)) }
+                                ),
+                                bold: true
+                            )
+                        }
+                    }
+                    MusicOptionSlider(icon: "textformat.size", iconColor: .blue, title: "Cỡ tên bài",
+                                      range: NowPlayingOptions.Limits.titleScale, value: options.titleScale,
+                                      format: Self.multiplier) { value in updateOptions { $0.titleScale = value } }
+                    w4Toggle("Tên ca sĩ viết hoa", icon: "textformat", key: W4MusicLook.Key.eyebrowUpper,
+                             value: look.eyebrowUpper, fallback: true)
+                    MusicOptionSlider(icon: "character", iconColor: .purple, title: "Giãn chữ tên ca sĩ", range: 0 ... 12,
+                                      value: look.tracking, format: { String(format: "%.0f", $0) },
+                                      commit: w4Number(W4MusicLook.Key.tracking))
+
+                    Divider()
+                    w4Heading("Nền")
+                    MusicOptionSlider(icon: "rectangle.fill", iconColor: .gray, title: "Độ đậm nền", range: 0 ... 1,
+                                      value: look.card, format: Self.percent, commit: w4Number(W4MusicLook.Key.card))
+                    MusicOptionSlider(icon: "square.dashed", iconColor: .gray, title: "Bo góc nền", range: 0 ... 1,
+                                      value: look.cardRadius, format: Self.percent, commit: w4Number(W4MusicLook.Key.cardRadius))
+                    w4Toggle("Kính mờ", icon: "drop", key: W4MusicLook.Key.blur, value: look.blur)
+                    w4Toggle("Nền theo màu sóng nhạc", icon: "paintpalette", key: W4MusicLook.Key.cardTint, value: look.cardTint)
+                    w4Toggle("Viền nền", icon: "square", key: W4MusicLook.Key.cardEdge, value: look.cardEdge)
+                }
+                .disabled(!isEditable)
+            }
+        }
+        .groupBoxStyle(ContainerGroupBoxStyle())
     }
 }
 #endif

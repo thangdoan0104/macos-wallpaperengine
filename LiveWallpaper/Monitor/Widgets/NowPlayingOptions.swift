@@ -105,9 +105,9 @@ struct NowPlayingOptions: Equatable, Sendable {
     enum Limits {
         static let opacity: ClosedRange<Double> = 0.2...1.0
         static let textBrightness: ClosedRange<Double> = 0.5...1.0
-        static let titleScale: ClosedRange<Double> = 0.7...1.4
+        static let titleScale: ClosedRange<Double> = 0.5...2.5
         static let artworkShadow: ClosedRange<Double> = 0...1
-        static let artworkScale: ClosedRange<Double> = 0.6...1.6
+        static let artworkScale: ClosedRange<Double> = 0.4...4.0
         static let audioIntensity: ClosedRange<Double> = 0.2...2.0
         static let beatSensitivity: ClosedRange<Double> = 0.8...2.5
     }

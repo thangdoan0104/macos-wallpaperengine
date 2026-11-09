@@ -526,7 +526,9 @@ struct NowPlayingWidgetView: View {
     private func titleText(
         _ text: String, size: CGFloat, weight: Font.Weight, lineLimit: Int, minimumScale: CGFloat
     ) -> some View {
-        let font = Font.system(size: size, weight: weight, design: titleDesign)
+        let font = w4Look.titleFamily.isEmpty
+            ? Font.system(size: size, weight: weight, design: titleDesign)
+            : Font.custom(w4Look.titleFamily, size: size).weight(weight)
         let color = Color.white.opacity(textAlpha(0.97))
         if layout.marquee {
             NowPlayingMarqueeText(text: text, font: font, color: color, moving: !suspended)
@@ -548,13 +550,65 @@ struct NowPlayingWidgetView: View {
         )
     }
 
-    @ViewBuilder
     private func trackContent(state: MonitorNowPlayingState, in size: CGSize) -> some View {
-        switch style {
-        case .poster: posterBody(state: state, in: size)
-        case .vinyl: vinylBody(state: state, in: size)
-        case .aurora: auroraBody(state: state, in: size)
+        Group {
+            switch style {
+            case .poster: posterBody(state: state, in: size)
+            case .vinyl: vinylBody(state: state, in: size)
+            case .aurora: auroraBody(state: state, in: size)
+            }
         }
+        .background { w4Card(in: size) }
+    }
+
+    // MARK: w4 look
+
+    private var w4Look: W4MusicLook { W4MusicLook(context.options) }
+
+    /// A card behind the whole layer: tinted, optionally frosted, optionally edged in the wave color.
+    @ViewBuilder
+    private func w4Card(in size: CGSize) -> some View {
+        let look = w4Look
+        if look.card > 0.001 || look.blur {
+            let shape = RoundedRectangle(cornerRadius: min(size.width, size.height) * 0.5 * look.cardRadius, style: .continuous)
+            ZStack {
+                if look.blur {
+                    shape.fill(.ultraThinMaterial)
+                }
+                shape.fill(look.cardTint ? waveColor.opacity(look.card) : Color.black.opacity(look.card))
+                if look.cardEdge {
+                    shape.strokeBorder(waveColor.opacity(0.8), lineWidth: 1.5)
+                }
+            }
+        }
+    }
+
+    /// The cover with the w4 frame: corner radius, tilt, spin, edge and glow in the wave color.
+    @ViewBuilder
+    private func w4Artwork(_ artwork: MonitorNowPlayingArtwork, side: CGFloat) -> some View {
+        let look = w4Look
+        let radius: CGFloat = look.radius.map { side * 0.5 * $0 } ?? 4
+        let shape: NowPlayingArtworkView.ArtworkShape = switch options.artworkShape {
+        case .rounded: .rounded(radius)
+        case .circle: .circle
+        case .square: .rounded(0)
+        }
+        let outline: AnyShape = switch shape {
+        case let .rounded(value): AnyShape(RoundedRectangle(cornerRadius: value, style: .continuous))
+        case .circle: AnyShape(Circle())
+        }
+        NowPlayingArtworkView(artwork: artwork, cacheKey: trackKey, shape: shape)
+            .frame(width: side, height: side)
+            .overlay {
+                if look.border > 0.001 {
+                    outline.stroke(waveColor, lineWidth: max(1, side * 0.06 * look.border))
+                }
+            }
+            .shadow(color: .black.opacity(options.artworkShadow), radius: 7, x: 0, y: 2)
+            .shadow(color: waveColor.opacity(look.glow), radius: side * 0.22 * look.glow)
+            .modifier(W4Spin(active: look.spin && layout.motion, speed: look.spinSpeed))
+            .rotationEffect(.degrees(look.tilt))
+            .opacity(visibility.art)
     }
 
     // MARK: Motion drivers
@@ -830,21 +884,21 @@ struct NowPlayingWidgetView: View {
             * options.titleScale
         let eyebrowSize = max(10, titleSize * 0.28)
         let inset = max(10, size.height * 0.07)
-        let artworkSide = titleSize * 1.15 * options.artworkScale
+        let artworkSide = min(titleSize * 1.15 * options.artworkScale, max(10, size.height - inset * 2))
+        let place = w4Look.resolvedPlace(alignment)
+        let showsArt = layout.visible.contains(.artworkThumb) && state.artworkPayload != nil
+        let gap = showsArt ? eyebrowSize * 0.9 * w4Look.gap : 0
 
-        HStack(alignment: .top, spacing: layout.visible.contains(.artworkThumb) ? eyebrowSize * 0.9 : 0) {
-            if layout.visible.contains(.artworkThumb), let artwork = state.artworkPayload {
-                NowPlayingArtworkView(artwork: artwork, cacheKey: trackKey, shape: artworkShape(radius: 4))
-                    .frame(width: artworkSide, height: artworkSide)
-                    .shadow(color: .black.opacity(options.artworkShadow), radius: 7, x: 0, y: 2)
-                    .opacity(visibility.art)
+        W4ArtTextStack(place: place, alignment: alignment, spacing: gap) {
+            if showsArt, let artwork = state.artworkPayload {
+                w4Artwork(artwork, side: artworkSide)
             }
-
+        } text: {
             VStack(alignment: alignment.horizontal, spacing: eyebrowSize * 0.5) {
                 if let eyebrow = posterEyebrow(state: state) {
                     Text(verbatim: eyebrow)
                         .font(.system(size: eyebrowSize, weight: .semibold, design: .default))
-                        .tracking(3)
+                        .tracking(w4Look.tracking)
                         .foregroundStyle(.white.opacity(textAlpha(0.74)))
                         .lineLimit(1)
                         .nowPlayingTextShadow()
@@ -887,7 +941,8 @@ struct NowPlayingWidgetView: View {
         if layout.visible.contains(.artistLine), let artist = state.artist { parts.append(artist) }
         if layout.visible.contains(.albumLine), let album = state.album { parts.append(album) }
         guard !parts.isEmpty else { return nil }
-        return parts.joined(separator: " — ").uppercased()
+        let line = parts.joined(separator: " — ")
+        return w4Look.eyebrowUpper ? line.uppercased() : line
     }
 
     @ViewBuilder
@@ -943,17 +998,20 @@ struct NowPlayingWidgetView: View {
             * options.titleScale
         let smallSize = max(10, titleSize * 0.55)
 
-        HStack(spacing: inset * 1.4) {
-            vinylDisc(state: state, side: discSide)
+        HStack(spacing: inset * 1.4 * w4Look.gap) {
+            if w4Look.resolvedPlace(alignment) != .right {
+                vinylDisc(state: state, side: discSide)
+                    .rotationEffect(.degrees(w4Look.tilt))
+            }
 
             VStack(alignment: alignment.horizontal, spacing: smallSize * 0.55) {
                 titleText(state.title, size: titleSize, weight: .semibold, lineLimit: 2, minimumScale: 0.75)
                     .nowPlayingTextShadow()
 
                 if layout.visible.contains(.artistLine), let artist = state.artist {
-                    Text(verbatim: artist.uppercased())
+                    Text(verbatim: w4Look.eyebrowUpper ? artist.uppercased() : artist)
                         .font(.system(size: smallSize, weight: .semibold))
-                        .tracking(2.5)
+                        .tracking(w4Look.tracking * 0.85)
                         .foregroundStyle(.white.opacity(textAlpha(0.72)))
                         .lineLimit(1)
                         .nowPlayingTextShadow()
@@ -974,6 +1032,11 @@ struct NowPlayingWidgetView: View {
             }
             .nowPlayingTextBacking(visibility.textBacking, inset: smallSize * 0.7)
             .frame(maxWidth: .infinity, alignment: alignment.frame)
+
+            if w4Look.resolvedPlace(alignment) == .right {
+                vinylDisc(state: state, side: discSide)
+                    .rotationEffect(.degrees(w4Look.tilt))
+            }
         }
         .padding(inset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -1092,9 +1155,9 @@ struct NowPlayingWidgetView: View {
                     .nowPlayingTextShadow()
 
                 if layout.visible.contains(.artistLine), let artist = state.artist {
-                    Text(verbatim: artist.uppercased())
+                    Text(verbatim: w4Look.eyebrowUpper ? artist.uppercased() : artist)
                         .font(.system(size: smallSize, weight: .semibold))
-                        .tracking(2.5)
+                        .tracking(w4Look.tracking * 0.85)
                         .foregroundStyle(.white.opacity(textAlpha(0.7)))
                         .lineLimit(1)
                         .nowPlayingTextShadow()
@@ -1469,5 +1532,129 @@ private extension MusicOverlayContext {
 #endif
 enum W4WaveColor {
     static let key = "w4WaveHex"
+}
+// MARK: - w4 look
+
+/// w4: the creative options of the Music layer, kept in its options next to Loomscreen's own.
+struct W4MusicLook: Equatable {
+    enum Place: String, CaseIterable, Identifiable {
+        case auto, left, right, top, bottom
+
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .auto: "Tự động"
+            case .left: "Trái"
+            case .right: "Phải"
+            case .top: "Trên"
+            case .bottom: "Dưới"
+            }
+        }
+    }
+
+    enum Key {
+        static let place = "w4ArtPlace"
+        static let radius = "w4ArtRadius"
+        static let tilt = "w4ArtTilt"
+        static let spin = "w4ArtSpin"
+        static let spinSpeed = "w4ArtSpinSpeed"
+        static let border = "w4ArtBorder"
+        static let glow = "w4ArtGlow"
+        static let gap = "w4ArtGap"
+        static let titleFamily = "w4TitleFamily"
+        static let eyebrowUpper = "w4EyebrowUpper"
+        static let tracking = "w4Tracking"
+        static let card = "w4Card"
+        static let cardRadius = "w4CardRadius"
+        static let blur = "w4CardBlur"
+        static let cardTint = "w4CardTint"
+        static let cardEdge = "w4CardEdge"
+    }
+
+    var place = Place.auto
+    /// nil keeps Loomscreen's small fixed corner.
+    var radius: Double?
+    var tilt = 0.0
+    var spin = false
+    var spinSpeed = 1.0
+    var border = 0.0
+    var glow = 0.0
+    var gap = 1.0
+    var titleFamily = ""
+    var eyebrowUpper = true
+    var tracking = 3.0
+    var card = 0.0
+    var cardRadius = 0.25
+    var blur = false
+    var cardTint = false
+    var cardEdge = false
+
+    init() {}
+
+    init(_ options: [String: MonitorWidgetOptionValue]) {
+        func number(_ key: String, _ fallback: Double, _ range: ClosedRange<Double>) -> Double {
+            guard let value = options[key]?.numberValue, value.isFinite else { return fallback }
+            return min(max(value, range.lowerBound), range.upperBound)
+        }
+        place = options[Key.place]?.stringValue.flatMap(Place.init(rawValue:)) ?? .auto
+        radius = options[Key.radius]?.numberValue.map { min(max($0, 0), 1) }
+        tilt = number(Key.tilt, 0, -30 ... 30)
+        spin = options[Key.spin]?.boolValue ?? false
+        spinSpeed = number(Key.spinSpeed, 1, 0.2 ... 4)
+        border = number(Key.border, 0, 0 ... 1)
+        glow = number(Key.glow, 0, 0 ... 1)
+        gap = number(Key.gap, 1, 0 ... 4)
+        titleFamily = options[Key.titleFamily]?.stringValue ?? ""
+        eyebrowUpper = options[Key.eyebrowUpper]?.boolValue ?? true
+        tracking = number(Key.tracking, 3, 0 ... 12)
+        card = number(Key.card, 0, 0 ... 1)
+        cardRadius = number(Key.cardRadius, 0.25, 0 ... 1)
+        blur = options[Key.blur]?.boolValue ?? false
+        cardTint = options[Key.cardTint]?.boolValue ?? false
+        cardEdge = options[Key.cardEdge]?.boolValue ?? false
+    }
+
+    /// Auto keeps the cover on the side the text is aligned to, so the two stay together.
+    func resolvedPlace(_ alignment: NowPlayingOptions.Alignment) -> Place {
+        guard place == .auto else { return place }
+        return alignment == .trailing ? .right : .left
+    }
+}
+
+/// Cover and text side by side or stacked, the text block keeping its own alignment.
+struct W4ArtTextStack<Art: View, TextBlock: View>: View {
+    let place: W4MusicLook.Place
+    let alignment: NowPlayingOptions.Alignment
+    let spacing: CGFloat
+    @ViewBuilder let art: Art
+    @ViewBuilder let text: TextBlock
+
+    var body: some View {
+        switch place {
+        case .top:
+            VStack(alignment: alignment.horizontal, spacing: spacing) { art; text }
+        case .bottom:
+            VStack(alignment: alignment.horizontal, spacing: spacing) { text; art }
+        case .right:
+            HStack(alignment: .center, spacing: spacing) { text; art }
+        case .left, .auto:
+            HStack(alignment: .center, spacing: spacing) { art; text }
+        }
+    }
+}
+
+/// Turns the cover like a record while music plays.
+struct W4Spin: ViewModifier {
+    let active: Bool
+    let speed: Double
+
+    func body(content: Content) -> some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !active)) { timeline in
+            content.rotationEffect(.degrees(
+                active ? (timeline.date.timeIntervalSinceReferenceDate * 24 * speed).truncatingRemainder(dividingBy: 360) : 0
+            ))
+        }
+    }
 }
 #endif
