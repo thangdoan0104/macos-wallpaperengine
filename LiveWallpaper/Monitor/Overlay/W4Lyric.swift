@@ -594,6 +594,9 @@ struct W4FontPicker: View {
     /// The look being edited: the shared one or a display's own.
     @Binding var family: String
     var bold = true
+    /// The lyric on screen shows the hovered font; off when picking for something else.
+    var previewsOnLyric = true
+    var sampleText: String?
     @State private var query = ""
     @State private var filter = Filter.all
     @State private var fonts: [W4FontInfo] = []
@@ -622,6 +625,7 @@ struct W4FontPicker: View {
     }
 
     private var sample: String {
+        if let sampleText { return sampleText }
         let line = controller.activeLineText
         return line.isEmpty ? "Lyric sẽ hiện như thế này" : line
     }
@@ -677,6 +681,7 @@ struct W4FontPicker: View {
         .padding(.horizontal, 10)
         .frame(height: 32)
         .onHover { inside in
+            guard previewsOnLyric else { return }
             if inside {
                 controller.previewFontFamily = info.family
             } else if controller.previewFontFamily == info.family {
@@ -688,7 +693,9 @@ struct W4FontPicker: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(verbatim: sample)
-                .font(controller.font(size: 22, bold: bold, family: family))
+                .font(previewsOnLyric
+                    ? controller.font(size: 22, bold: bold, family: family)
+                    : (family.isEmpty ? .system(size: 22, weight: .bold) : Font.custom(family, size: 22).weight(.bold)))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .frame(maxWidth: .infinity, minHeight: 44)

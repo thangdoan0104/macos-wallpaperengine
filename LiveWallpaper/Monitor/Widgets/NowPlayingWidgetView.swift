@@ -693,7 +693,7 @@ struct NowPlayingWidgetView: View {
     private func transportOverlay(state: MonitorNowPlayingState, in size: CGSize) -> some View {
         if layout.controlsAllowed {
             let shown = layout.visible.contains(.controls)
-            let side = min(max(min(size.width, size.height) * 0.19, 22), 46)
+            let side = min(max(min(size.width, size.height) * 0.19, 22), 46) * w4Look.controlsScale
             HStack(spacing: side * 0.24) {
                 ForEach(NowPlayingWidgetLayout.controlButtons(for: context.size).filter {
                     NowPlayingController.supports(Self.command(for: $0), state: state)
@@ -709,7 +709,7 @@ struct NowPlayingWidgetView: View {
                     .overlay(Capsule().strokeBorder(.white.opacity(0.16), lineWidth: 0.5))
             }
             .padding(max(6, side * 0.26))
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: w4Look.controlsAlignment(alignment))
             .opacity(shown ? 1 : 0)
             .allowsHitTesting(shown)
         }
@@ -1570,7 +1570,29 @@ struct W4MusicLook: Equatable {
         static let blur = "w4CardBlur"
         static let cardTint = "w4CardTint"
         static let cardEdge = "w4CardEdge"
+        static let controlsPlace = "w4CtlPlace"
+        static let controlsScale = "w4CtlScale"
     }
+
+    enum ControlsPlace: String, CaseIterable, Identifiable {
+        case auto, topLeading, top, topTrailing, bottomLeading, bottomTrailing
+
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .auto: "Tự động"
+            case .topLeading: "Trên trái"
+            case .top: "Trên giữa"
+            case .topTrailing: "Trên phải"
+            case .bottomLeading: "Dưới trái"
+            case .bottomTrailing: "Dưới phải"
+            }
+        }
+    }
+
+    var controlsPlace = ControlsPlace.auto
+    var controlsScale = 1.0
 
     var place = Place.auto
     /// nil keeps Loomscreen's small fixed corner.
@@ -1613,6 +1635,25 @@ struct W4MusicLook: Equatable {
         blur = options[Key.blur]?.boolValue ?? false
         cardTint = options[Key.cardTint]?.boolValue ?? false
         cardEdge = options[Key.cardEdge]?.boolValue ?? false
+        controlsPlace = options[Key.controlsPlace]?.stringValue.flatMap(ControlsPlace.init(rawValue:)) ?? .auto
+        controlsScale = number(Key.controlsScale, 1, 0.6 ... 2)
+    }
+
+    /// Auto puts the buttons across from the cover, so they never sit on top of it.
+    func controlsAlignment(_ alignment: NowPlayingOptions.Alignment) -> SwiftUI.Alignment {
+        switch controlsPlace {
+        case .topLeading: return .topLeading
+        case .top: return .top
+        case .topTrailing: return .topTrailing
+        case .bottomLeading: return .bottomLeading
+        case .bottomTrailing: return .bottomTrailing
+        case .auto:
+            switch resolvedPlace(alignment) {
+            case .right: return .topLeading
+            case .left: return .topTrailing
+            default: return alignment == .trailing ? .topLeading : .topTrailing
+            }
+        }
     }
 
     /// Auto keeps the cover on the side the text is aligned to, so the two stay together.
