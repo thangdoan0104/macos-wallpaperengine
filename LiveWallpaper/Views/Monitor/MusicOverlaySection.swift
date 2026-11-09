@@ -97,10 +97,12 @@ struct MusicOverlaySection: View {
     private func card<Content: View>(
         _ title: LocalizedStringKey, icon: String, expanded: Binding<Bool>, @ViewBuilder content: () -> Content
     ) -> some View {
-        GroupBox {
+        // Built once here: the collapsible section keeps its closure, which may not hold a non-escaping one.
+        let inner = content()
+        return GroupBox {
             CollapsibleSection(title: title, systemImage: icon, isExpanded: expanded) {
                 VStack(alignment: .leading, spacing: 8) {
-                    content()
+                    inner
                 }
                 .disabled(!isEditable)
             }
