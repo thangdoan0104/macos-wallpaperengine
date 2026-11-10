@@ -323,10 +323,23 @@ final class W4LyricController: ObservableObject {
         ) { _ in
             MainActor.assumeIsolated { W4LyricController.shared.rebuild() }
         }
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            MainActor.assumeIsolated { W4LyricController.shared.tick() }
-        }
         rebuild()
+    }
+
+    /// The 10 Hz clock runs only while a song with lyrics plays, so the Mac can idle the rest of the time.
+    private func syncTimer() {
+        let needed = started && nowPlaying?.phase == .playing && !lines.isEmpty
+        if needed, timer == nil {
+            let t = Timer(timeInterval: 0.1, repeats: true) { _ in
+                MainActor.assumeIsolated { W4LyricController.shared.tick() }
+            }
+            t.tolerance = 0.03
+            RunLoop.main.add(t, forMode: .common)
+            timer = t
+        } else if !needed, let t = timer {
+            t.invalidate()
+            timer = nil
+        }
     }
 
     var displayLines: [LyricLine] {
@@ -374,10 +387,12 @@ final class W4LyricController: ObservableObject {
                     guard let self, self.trackKey == key else { return }
                     self.lines = found
                     self.statusText = found.isEmpty ? "Chưa có lyric cho bài này" : "Đã có lyric: \(found.count) dòng"
+                    self.syncTimer()
                 }
             }
         }
         tick()
+        syncTimer()
     }
 
     private func tick() {

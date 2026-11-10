@@ -124,6 +124,8 @@ struct MonitorGrain: View {
         let h = max(1, Int(height.rounded()))
         let key = "\(w)x\(h)"
         if let hit = cache[key] { return hit }
+        // Resizing a panel passes through many sizes; keep only a few bitmaps instead of one per size.
+        if cache.count >= 6 { cache.removeAll(keepingCapacity: true) }
 
         let bytesPerRow = w * 4
         var pixels = [UInt8](repeating: 0, count: bytesPerRow * h)

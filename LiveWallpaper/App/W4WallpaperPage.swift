@@ -33,6 +33,8 @@ canvas{position:absolute;pointer-events:none}
   var media = document.createElement(C.kind === 'video' ? 'video' : 'img');
   media.id = 'media';
   var nw = 0, nh = 0, W = 0, H = 0, dpr = 1;
+  // Hạt là những đốm sáng mờ, vẽ ở nửa độ phân giải không thấy khác mà đỡ 3/4 số điểm ảnh.
+  var FX_SCALE = 0.5, fxDirty = false;
   var rect = { x: 0, y: 0, w: 0, h: 0 };
 
   function rgb(s, a) {
@@ -43,7 +45,7 @@ canvas{position:absolute;pointer-events:none}
 
   function layout() {
     W = window.innerWidth; H = window.innerHeight; dpr = window.devicePixelRatio || 1;
-    fx.width = Math.round(W * dpr); fx.height = Math.round(H * dpr);
+    fx.width = Math.round(W * dpr * FX_SCALE); fx.height = Math.round(H * dpr * FX_SCALE); fxDirty = false;
     if (nw && nh) {
       var mode = P.fit, s;
       if (mode === 'fill') rect = { x: 0, y: 0, w: W, h: H };
@@ -65,6 +67,7 @@ canvas{position:absolute;pointer-events:none}
       media.muted = P.videovolume <= 0;
     }
     if (needsAudio()) registerAudio();
+    kick();
   }
 
   // Music
@@ -78,6 +81,7 @@ canvas{position:absolute;pointer-events:none}
       var half = Math.floor(a.length / 2) || 1, b = 0;
       for (var i = 0; i < 6; i++) b += ((a[i] || 0) + (a[i + half] || 0)) / 2;
       bass = Math.max(b / 6, bass * 0.85);
+      if (P.pulseon && bass > 0.01) kick();
     });
   }
 
@@ -107,9 +111,10 @@ canvas{position:absolute;pointer-events:none}
       size: 48 * k.scale * P.particlesize / 100 * (0.35 + Math.random() * 1.3) });
   }
   function drawParticles(dt) {
-    fxc.setTransform(dpr, 0, 0, dpr, 0, 0);
-    fxc.clearRect(0, 0, W, H);
-    if (!P.particleson) { parts.length = 0; return; }
+    var s = dpr * FX_SCALE;
+    fxc.setTransform(s, 0, 0, s, 0, 0);
+    if (!P.particleson) { parts.length = 0; if (fxDirty) { fxc.clearRect(0, 0, W, H); fxDirty = false; } return; }
+    fxc.clearRect(0, 0, W, H); fxDirty = true;
     var k = PRESET[P.particlepreset] || PRESET.embers;
     carry += k.rate * P.particledensity / 100 * dt;
     while (carry >= 1) { carry -= 1; if (parts.length < 800) spawn(k); }
@@ -124,9 +129,31 @@ canvas{position:absolute;pointer-events:none}
     }
     fxc.globalAlpha = 1;
   }
-  // Frame
-  var start = performance.now(), lastTransform = '';
+  // Frame. Vòng vẽ chỉ chạy khi có thứ đang chuyển động, và tối đa 30 lần/giây
+  // (60 khi đang nhún theo nhạc), thay vì chạy theo tần số màn cả khi đứng yên.
+  var start = performance.now(), lastTransform = '', running = false, lastDraw = 0;
+  function moving() { return P.motionon && C.kind !== 'video'; }
+  function wants() {
+    if (document.hidden) return false;
+    return moving() || P.particleson || parts.length > 0 || (P.pulseon && heard && bass > 0.002);
+  }
+  function kick() {
+    if (running || !wants()) return;
+    running = true; last = performance.now(); lastDraw = 0;
+    requestAnimationFrame(frame);
+  }
   function frame(now) {
+    if (!wants()) {
+      running = false;
+      if (fxDirty) { fxc.clearRect(0, 0, W, H); fxDirty = false; }
+      var rest = moving() ? lastTransform : 'none';
+      if (rest !== lastTransform) { stage.style.transform = rest === 'none' ? '' : rest; lastTransform = rest; }
+      return;
+    }
+    requestAnimationFrame(frame);
+    var gap = P.pulseon && heard ? 15 : 32;
+    if (now - lastDraw < gap) return;
+    lastDraw = now;
     var dt = Math.min(0.1, (now - last) / 1000); last = now;
     var scale = 1, tx = 0, ty = 0;
     if (P.motionon && C.kind !== 'video') {
@@ -137,10 +164,10 @@ canvas{position:absolute;pointer-events:none}
     var tf = 'scale(' + scale.toFixed(4) + ') translate(' + tx.toFixed(2) + 'px,' + ty.toFixed(2) + 'px)';
     if (tf !== lastTransform) { stage.style.transform = tf; lastTransform = tf; }
     drawParticles(dt);
-    requestAnimationFrame(frame);
   }
 
-  function ready() { layout(); applyLook(); requestAnimationFrame(frame); window.w4Ready = true; }
+  function ready() { layout(); applyLook(); kick(); window.w4Ready = true; }
+  document.addEventListener('visibilitychange', kick);
   if (C.kind === 'video') {
     media.autoplay = true; media.loop = true; media.muted = true; media.playsInline = true;
     media.addEventListener('loadedmetadata', function () { nw = media.videoWidth; nh = media.videoHeight; layout(); });

@@ -30,11 +30,21 @@ enum W4UpscaleError: LocalizedError {
 enum W4Upscaler {
     private static let targetWidth = 3840.0
     private static let targetHeight = 2160.0
-    nonisolated(unsafe) private static let context = CIContext()
-
     private static func load(_ url: URL) -> CGImage? {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
         return CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
+    }
+
+    /// The AI output is 4x the source (a 1080p picture comes back at 7680x4320); decode it straight at the
+    /// size that is kept instead of holding the full bitmap.
+    private static func load(_ url: URL, maxPixel: CGFloat) -> CGImage? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        return CGImageSourceCreateThumbnailAtIndex(source, 0, [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+        ] as CFDictionary)
     }
 
     private static func scaled(_ image: CIImage, to size: CGSize) -> CIImage {
@@ -48,6 +58,13 @@ enum W4Upscaler {
 
     /// An AI amount of 0 only enlarges; higher amounts blend the AI result over that enlargement.
     static func run(input: URL, kind: W4UpscaleKind, aiAmount: Double) throws -> URL {
+        try autoreleasepool { try render(input: input, kind: kind, aiAmount: aiAmount) }
+    }
+
+    private static func render(input: URL, kind: W4UpscaleKind, aiAmount: Double) throws -> URL {
+        // A context per run, without kept intermediates, so nothing stays in memory after the picture is written.
+        let context = CIContext(options: [.cacheIntermediates: false])
+        defer { context.clearCaches() }
         guard let image = load(input) else { throw W4UpscaleError.unreadable }
         let width = Double(image.width), height = Double(image.height)
         let scale = max(targetWidth / width, targetHeight / height, 1)
@@ -58,7 +75,7 @@ enum W4Upscaler {
         if aiAmount > 0.001 {
             let raw = try runAI(input: input, kind: kind)
             defer { try? FileManager.default.removeItem(at: raw) }
-            guard let aiImage = load(raw) else { throw W4UpscaleError.unreadable }
+            guard let aiImage = load(raw, maxPixel: max(size.width, size.height) * 1.05) else { throw W4UpscaleError.unreadable }
             let ai = scaled(CIImage(cgImage: aiImage), to: size)
             if let mix = CIFilter(name: "CIDissolveTransition") {
                 mix.setValue(base.transformed(by: .init(translationX: -base.extent.minX, y: -base.extent.minY)), forKey: kCIInputImageKey)
